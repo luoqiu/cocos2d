@@ -26,7 +26,10 @@
 
 Scene * TollgateScene::scene()
 {
-	return TollgateScene::create();
+	auto scene = Scene::create();
+	auto layer = TollgateScene::create();
+	scene->addChild(layer);
+	return scene;
 }
 
 bool TollgateScene::init()

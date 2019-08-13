@@ -30,7 +30,7 @@
 
 USING_NS_CC;
 
-class TollgateScene : public cocos2d::Scene
+class TollgateScene : public cocos2d::Layer
 {
 public:
 	static Scene* scene();
