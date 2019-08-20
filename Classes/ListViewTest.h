@@ -41,7 +41,7 @@ public:
 	void GetRes(std::vector<char>* p);
 	void ShowError(const std::string& error);
 	bool ShowLocalImage(std::string & p);
-	void onHttpRequestCompleted(cocos2d::CCNode *sender, void *data);
+	//void onHttpRequestCompleted(cocos2d::CCNode *sender, void *data);
 	void onMenuGetTestClicked(cocos2d::CCObject *sender);
 
 private:

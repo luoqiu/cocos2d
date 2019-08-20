@@ -43,6 +43,7 @@ void HttpDown::httpResponsecall(HttpClient* client, HttpResponse* response)
 	long res = response->getResponseCode();
 	if (res != 200)
 	{
+		_resBackCall(NULL);
 		return ;
 	}
 

@@ -14,6 +14,8 @@
 #include "deprecated/CCstring.h"
 #include "HttpDown.h"
 #include "GetUrl.h"
+#include "searchSqlite.h"
+
 USING_NS_CC;
 using namespace CocosDenshion;
 using namespace ui;
@@ -173,7 +175,7 @@ bool ListViewTest::ShowLocalImage(std::string& p)
 	CCImage* img = new CCImage;
 
 	img->initWithImageFile(p);
-	//img->initWithImageData((unsigned char*)buffer->data(), buffer->size());
+
 	if (img->getWidth() == 0 || img->getHeight() == 0)
 	{
 		ShowError("error local img");
@@ -205,7 +207,7 @@ bool ListViewTest::ShowImage(std::string& p)
 		index++;
 		if (index < vUrls.size())
 		{
-			HttpDown::GetInstance().HttpGetTest(vUrls[index]);
+			GetImgRes();
 		}
 		return false;
 	}
@@ -224,6 +226,15 @@ bool ListViewTest::ShowImage(std::string& p)
 
 void ListViewTest::ShowResImg(std::vector<char>* buffer)
 {
+	if (buffer == NULL)
+	{
+		index++;
+		if (index < vUrls.size())
+		{			
+			GetImgRes();
+		}
+		return ;
+	}
 	std::string buf(buffer->begin(), buffer->end());
 	std::string filePath = FileUtils::getInstance()->getWritablePath();
 	filePath += sFileName;
@@ -259,8 +270,14 @@ void ListViewTest::GetImgRes()
 
 void ListViewTest::GetRes(std::vector<char>* p)
 {
-	std::string response(p->begin(), p->end());
 	vUrls.clear();
+
+	if (p == NULL)
+	{
+		return;
+	}
+
+	std::string response(p->begin(), p->end());
 	GetUrl::GetInstance().getUrl(response, vUrls);
 
 	if (vUrls.size() == 0)
@@ -293,82 +310,82 @@ void ListViewTest::onMenuGetTestClicked(cocos2d::CCObject *sender)
 	HttpDown::GetInstance().HttpGetTest(urlPath);
 
 
-	return;
-	// test 1
-	{
-		auto request = new network::HttpRequest();//创建request对象,这里new出来的对象不能使用autorelease()，原因后述
-		request->setUrl("https://m.baidu.com/sf/vsearch?pd=image_content&atn=page&fr=tab&tn=vsearch&ss=100&sa=tb&rsv_sug4=2235&inputT=2234&word=" );//设置url
-		//request->setUrl( "https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=255657492,1187028829&fm=26&gp=0.jpg");
-		//request->setUrl("https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=255657492,1187028829&fm=26&gp=0.jpg");
-		request->setRequestType(network::HttpRequest::Type::GET);//设置请求方式
-		request->setResponseCallback(this, callfuncND_selector(ListViewTest::onHttpRequestCompleted));//这是回调对象和回调函数
-		request->setTag("GET test1");//设置用户标识，可以通过response获取
-		cocos2d::network::HttpClient::getInstance()->send(request);//使用CCHttpClient共享实例来发送request
-		request->release();//调用release()
-	}
+// 	return;
+// 	// test 1
+// 	{
+// 		auto request = new network::HttpRequest();//创建request对象,这里new出来的对象不能使用autorelease()，原因后述
+// 		request->setUrl("https://m.baidu.com/sf/vsearch?pd=image_content&atn=page&fr=tab&tn=vsearch&ss=100&sa=tb&rsv_sug4=2235&inputT=2234&word=" );//设置url
+// 		//request->setUrl( "https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=255657492,1187028829&fm=26&gp=0.jpg");
+// 		//request->setUrl("https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=255657492,1187028829&fm=26&gp=0.jpg");
+// 		request->setRequestType(network::HttpRequest::Type::GET);//设置请求方式
+// 		request->setResponseCallback(this, callfuncND_selector(ListViewTest::onHttpRequestCompleted));//这是回调对象和回调函数
+// 		request->setTag("GET test1");//设置用户标识，可以通过response获取
+// 		cocos2d::network::HttpClient::getInstance()->send(request);//使用CCHttpClient共享实例来发送request
+// 		request->release();//调用release()
+// 	}
 }
-//这里就是我们要处理接收到数据的回调函数了，sender为CCHttpClient实例指针，data为接收到的response指针
-void ListViewTest::onHttpRequestCompleted(cocos2d::CCNode *sender, void *data)
-{
-	auto response = (network::HttpResponse*)data;
-
-	if (!response)
-	{
-		return;
-	}
-
-	// 获取对应request的字符串标识
-	if (0 != strlen(response->getHttpRequest()->getTag()))
-	{
-		log("%s completed", response->getHttpRequest()->getTag());
-	}
-	//获取返回代码，比如200、404等
-	int statusCode = response->getResponseCode();
-	char statusString[64] = {};
-	sprintf(statusString, "HTTP Status Code: %d, tag = %s", statusCode, response->getHttpRequest()->getTag());
-
-	log("response code: %d", statusCode);
-
-	if (!response->isSucceed())
-	{
-		log("response failed");
-		log("error buffer: %s", response->getErrorBuffer());//可以调用getErrorBuffer()来获取错误原因
-		return;
-	}
-
-	// dump data
-	std::vector<char> *buffer = response->getResponseData();//用来获取接收到的数据
-	std::string buf(buffer->begin(), buffer->end());
-	char* p = "cow.jpg";
-	std::string sFileName = "cow.jpg";
-	std::string path = FileUtils::getInstance()->getWritablePath();
-#if CC_PLATFORM_ANDROID==CC_TARGET_PLATFORM
-	//path = "/sdcard/DCIM/";
-#endif
-	path += sFileName;
-	FILE* file = fopen(path.c_str(), "wb");
-	if (file)
-	{
-		
-		int len = fwrite(buf.c_str(),  1, buf.size(), file);
-		if (len != buf.size())
-		{
-				//StringUtils::toString(customTime)
-			auto slen = CCString::createWithFormat("len %d,errno:%d", len,errno);
-			ShowError(slen->getCString());
-
-			ShowError("error");
-			return;
-		}
-		
-		fclose(file);
-
-		ShowImage(path);
-	}
-	else
-	{
-		ShowError(path);
-	}
+// //这里就是我们要处理接收到数据的回调函数了，sender为CCHttpClient实例指针，data为接收到的response指针
+// void ListViewTest::onHttpRequestCompleted(cocos2d::CCNode *sender, void *data)
+// {
+// 	auto response = (network::HttpResponse*)data;
+// 
+// 	if (!response)
+// 	{
+// 		return;
+// 	}
+// 
+// 	// 获取对应request的字符串标识
+// 	if (0 != strlen(response->getHttpRequest()->getTag()))
+// 	{
+// 		log("%s completed", response->getHttpRequest()->getTag());
+// 	}
+// 	//获取返回代码，比如200、404等
+// 	int statusCode = response->getResponseCode();
+// 	char statusString[64] = {};
+// 	sprintf(statusString, "HTTP Status Code: %d, tag = %s", statusCode, response->getHttpRequest()->getTag());
+// 
+// 	log("response code: %d", statusCode);
+// 
+// 	if (!response->isSucceed())
+// 	{
+// 		log("response failed");
+// 		log("error buffer: %s", response->getErrorBuffer());//可以调用getErrorBuffer()来获取错误原因
+// 		return;
+// 	}
+// 
+// 	// dump data
+// 	std::vector<char> *buffer = response->getResponseData();//用来获取接收到的数据
+// 	std::string buf(buffer->begin(), buffer->end());
+// 	char* p = "cow.jpg";
+// 	std::string sFileName = "cow.jpg";
+// 	std::string path = FileUtils::getInstance()->getWritablePath();
+// #if CC_PLATFORM_ANDROID==CC_TARGET_PLATFORM
+// 	//path = "/sdcard/DCIM/";
+// #endif
+// 	path += sFileName;
+// 	FILE* file = fopen(path.c_str(), "wb");
+// 	if (file)
+// 	{
+// 		
+// 		int len = fwrite(buf.c_str(),  1, buf.size(), file);
+// 		if (len != buf.size())
+// 		{
+// 				//StringUtils::toString(customTime)
+// 			auto slen = CCString::createWithFormat("len %d,errno:%d", len,errno);
+// 			ShowError(slen->getCString());
+// 
+// 			ShowError("error");
+// 			return;
+// 		}
+// 		
+// 		fclose(file);
+// 
+// 		ShowImage(path);
+// 	}
+// 	else
+// 	{
+// 		ShowError(path);
+// 	}
 // 	CCImage* img = new CCImage;
 // 	img->initWithImageFile("cow.jpg");
 // 	//img->initWithImageData((unsigned char*)buffer->data(), buffer->size());
@@ -382,4 +399,4 @@ void ListViewTest::onHttpRequestCompleted(cocos2d::CCNode *sender, void *data)
 // 	sprit->setPosition(Vec2::ANCHOR_MIDDLE);
 // 	this->addChild(sprit);
 	//img->release();
-}
+//}

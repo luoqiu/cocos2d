@@ -10,7 +10,7 @@
 
 static const std::string g_head = "class=\"se-head-tabcover\"";
 static size_t g_headLen = g_head.size();
-static const std::regex expImg("http((?!jpg).)*\.(jpg|JPG)");
+static const std::regex expImg("http:((?!http|\").)+\.jpg");
 
 static GetUrl g_instance;
 
@@ -35,33 +35,30 @@ void GetUrl::getUrl(const std::string& res, std::vector<std::string>& vUrls)
 	std::smatch::iterator it;
 	std::string::const_iterator iterStart = tmp.begin();
 	std::string::const_iterator iterEnd = tmp.end();
-	try
-	{
-		while (std::regex_search(iterStart, iterEnd, mdata, expImg)) {
-			std::string urlImg(mdata[0]);
-			size_t nPos = urlImg.find('\\');
-			while (nPos != std::string::npos)
-			{
-				urlImg.replace(nPos, 1, "");
-				nPos = urlImg.find('\\');
-			}
 
-			vUrls.push_back(urlImg);
-			tmp = &*mdata[0].second;
-
-			pos = tmp.find("http");
-			if (pos == std::string::npos)
-			{
-				return;
-			}
-
-			tmp = tmp.substr(pos, tmp.size());
-			iterStart = tmp.begin();
-			iterEnd = tmp.end();
+	while (std::regex_search(iterStart, iterEnd, mdata, expImg)) {
+		std::string urlImg(mdata[0]);
+		size_t nPos = urlImg.find('\\');
+		while (nPos != std::string::npos)
+		{
+			urlImg.replace(nPos, 1, "");
+			nPos = urlImg.find('\\');
 		}
+
+		vUrls.push_back(urlImg);
+		iterStart = mdata[0].second;
+// 
+// 			tmp = &*mdata[0].second;
+// 
+// 			pos = tmp.find("http");
+// 			if (pos == std::string::npos)
+// 			{
+// 				return;
+// 			}
+// 
+// 			tmp = tmp.substr(pos, tmp.size());
+// 			iterStart = tmp.begin();
+// 			iterEnd = tmp.end();
 	}
-	catch (...)
-	{
-		
-	}
+
 }

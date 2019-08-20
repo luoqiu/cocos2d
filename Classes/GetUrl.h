@@ -11,6 +11,7 @@
 
 #include <iostream>
 #include <regex>
+#include <external\json\internal\regex.h>
 
 class GetUrl
 {
