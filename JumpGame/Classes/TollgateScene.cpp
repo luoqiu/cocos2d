@@ -24,7 +24,7 @@
 
 #include "TollgateScene.h"
 
-Scene * TollgateScene::scene()
+Scene * TollgateScene::CreateScene()
 {
 	auto scene = Scene::create();
 	auto layer = TollgateScene::create();
@@ -79,6 +79,18 @@ void TollgateScene::update(float delta)
 	}
 	m_bgSprite1->setPositionX(pos1_x);
 	m_bgSprite2->setPositionX(pos2_x);
+}
+
+void TollgateScene::createJumpBt()
+{
+	Size visibleSize = Director::getInstance()->getVisibleSize();
+	auto jumpTile = LabelTTF::create("jump", "", 35);
+	//auto jumpBt = ControlButton::create();
+
+}
+
+void TollgateScene::jumpEvent(Ref * pSender)
+{
 }
 
 void TollgateScene::initBG()

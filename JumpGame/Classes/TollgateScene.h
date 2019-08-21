@@ -33,9 +33,11 @@ USING_NS_CC;
 class TollgateScene : public cocos2d::Layer
 {
 public:
-	static Scene* scene();
+	static Scene* CreateScene();
 	virtual bool init();
 	virtual void update(float delta);
+	void createJumpBt();
+	void jumpEvent(Ref* pSender);
 	CREATE_FUNC(TollgateScene);
 private:
 	void initBG();
