@@ -7,16 +7,52 @@
 //
 
 #include "GetUrl.h"
+#include "regex.h"
+#include <stdio.h>
+#include <string.h>
 
 static const std::string g_head = "class=\"se-head-tabcover\"";
 static size_t g_headLen = g_head.size();
-static const std::regex expImg("http:((?!http|\").)+\.jpg");
+static const std::string pattern = "http:((?!http:).)+\.jpg";
+static const std::regex expImg(pattern);
 
 static GetUrl g_instance;
 
 GetUrl& GetUrl::GetInstance()
 {
 	return g_instance;
+}
+
+void GetUrl::getUrlRegex(const std::string& res, std::vector<std::string>& vUrls)
+{
+	size_t pos = res.find(g_head);
+	if (pos == std::string::npos)
+	{
+		return;
+	}
+
+	pos += g_headLen;
+	std::string tmp(&res[pos]);
+
+	const size_t nmatch = 10;
+	regmatch_t pm[10];
+	int z = REG_NOERROR;
+	regex_t reg;
+	
+	z = regcomp(&reg, pattern, REG_EXTENDED | REG_NOSUB);
+	const char *p = tmp.c_str();
+	while (z != REG_NOMATCH)
+	{
+		z = regexec(&reg, p, nmatch, pm, REG_NOTBOL);
+		if (z == REG_NOMATCH || z != REG_NOERROR)
+			break;
+		std::string urlTmp;
+		urlTmp.assign(p + pm[0].rm_so, pm[0].rm_eo);
+		vUrls.push_back(urlTmp);
+		p += pm[0].rm_eo;
+	}
+
+	regfree(&reg);
 }
 
 void GetUrl::getUrl(const std::string& res, std::vector<std::string>& vUrls)
@@ -47,18 +83,5 @@ void GetUrl::getUrl(const std::string& res, std::vector<std::string>& vUrls)
 
 		vUrls.push_back(urlImg);
 		iterStart = mdata[0].second;
-// 
-// 			tmp = &*mdata[0].second;
-// 
-// 			pos = tmp.find("http");
-// 			if (pos == std::string::npos)
-// 			{
-// 				return;
-// 			}
-// 
-// 			tmp = tmp.substr(pos, tmp.size());
-// 			iterStart = tmp.begin();
-// 			iterEnd = tmp.end();
 	}
-
 }

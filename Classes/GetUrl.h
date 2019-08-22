@@ -17,6 +17,7 @@ class GetUrl
 {
 public:
 	static GetUrl& GetInstance();
+	void getUrlRegex(const std::string & res, std::vector<std::string>& vUrls);
 	void getUrl(const std::string& res, std::vector<std::string>& vUrls);
 private:
 };
