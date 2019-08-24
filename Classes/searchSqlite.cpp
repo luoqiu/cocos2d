@@ -1,5 +1,9 @@
 #include "searchSqlite.h"
 #include "cocos2d.h"
+extern "C"
+{
+#include "sqlite3.h"
+}
 USING_NS_CC;
 static SearchSqlite g_instance;
 
@@ -13,9 +17,13 @@ static int callback(void *data, int argc, char **argv, char **azColName)
 	int i;
 	std::vector<std::string>* vecValue = (std::vector<std::string>*)data;
 
-	for (i = 0; i < argc; i++) {
-		log("%d = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
-		vecValue->push_back(argv[i]);
+	for (i = 0; i < argc; i++) 
+	{
+		//log("%d = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
+		if (argv[i])
+		{
+			vecValue->push_back(argv[i]);
+		}
 	}
 
 	return 0;

@@ -14,12 +14,13 @@
 #include "deprecated/CCstring.h"
 #include "HttpDown.h"
 #include "GetUrl.h"
-#include "searchSqlite.h"
+#include "configData.h"
 
-USING_NS_CC;
+
 using namespace CocosDenshion;
 using namespace ui;
 static const std::string path = "https://m.baidu.com/sf/vsearch?pd=image_content&atn=page&fr=tab&tn=vsearch&ss=100&sa=tb&rsv_sug4=2235&inputT=2234&word=";
+using namespace cocos2d;
 
 typedef struct _MENU
 {
