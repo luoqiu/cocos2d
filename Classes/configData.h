@@ -26,6 +26,8 @@ public:
 	void GetValueForKey(const std::string & key, std::string & value, const std::string & defaultValue);
 	void GetVec(std::string & index, std::vector<int>& vec);
 	virtual bool init();
+	void onEnterGrade();
+	void onEnterContent();
 	virtual void onEnter() override;
 
 private:
@@ -36,7 +38,7 @@ private:
 	std::vector<int> _vecSerialumber;
 	std::vector<std::string> _vecWords;
 	std::vector<std::string> _vecGrade;
-
+	bool _bGradeFlag;		//
 };
 
 #endif /* defined(__UITest__TextTest__) */

@@ -11,6 +11,8 @@
 #include "ui/CocosGUI.h"
 using namespace ui;
 static const std::string defaultStr = "1";
+static const int g_gradeTag = 1;
+static const int g_contentTag = 2;
 
 cocos2d::Scene * EnglishClass::createScene()
 {
@@ -53,6 +55,8 @@ bool EnglishClass::init()
 	{
 		return false;
 	}
+
+	_bGradeFlag = true;
 
 	_stage = UserDefault::getInstance()->getStringForKey("stage");
 	if (_stage.empty())
@@ -104,9 +108,15 @@ bool EnglishClass::init()
 	return true;
 }
 
-void EnglishClass::onEnter()
+
+void EnglishClass::onEnterGrade()
 {
-	Layer::onEnter();
+	auto chl = getChildByTag(g_contentTag);
+	if (chl)
+	{
+		removeChildByTag(g_contentTag, true);
+	}
+
 	Size visibleSize = Director::getInstance()->getVisibleSize();
 
 	auto listView = ListView::create();
@@ -132,6 +142,8 @@ void EnglishClass::onEnter()
 				GetVec(gradeIndex, vecIndex);
 				_vecWords.clear();
 				SearchSqlite::GetInstance().SearchValue(vecIndex, grade, _vecWords);
+				//切换展示内容;
+				_bGradeFlag = false;
 			}
 
 			break;
@@ -141,4 +153,95 @@ void EnglishClass::onEnter()
 		}
 	});
 
+	for (int i = 0; i < _vecGrade.size(); ++i)
+	{
+		// 创建一个Button
+		Button* custom_button = Button::create("button.png", "buttonHighlighted.png");
+		// 设置Button的Name
+		custom_button->setName(_vecGrade[i]);
+		// 设置Button是否九宫格填充
+		custom_button->setScale9Enabled(true);
+		// 设置Button的ContentSize
+		custom_button->setContentSize(Size(40, 20));
+		// 设置Button的TitleText为对应_array的文本内容
+		//custom_button->setTitleText(StringUtils::format("listview_item_%d", i));
+		custom_button->setTitleText(_vecGrade[i]);
+		// 设置Button的文本字体大小
+		custom_button->setTitleFontSize(12);
+		
+		// 创建一个Layout，用来添加Button
+		Layout *custom_item = Layout::create();
+		// 设置Layout的ContentSize和Button的ContentSize一致
+		custom_item->setContentSize(custom_button->getContentSize());
+		// 设置Layout的坐标位置
+		custom_button->setPosition(Vec2(custom_item->getContentSize().width / 2.0f, custom_item->getContentSize().height / 2.0f));
+		// 将Button添加为Layout的字节
+		custom_item->addChild(custom_button);
+		// 将Layout添加为ListView的子节点
+		listView->addChild(custom_item);
+		
+	}
+	listView->setTag(g_gradeTag);
+	addChild(listView);
+}
+
+
+void EnglishClass::onEnterContent()
+{
+	auto chl = getChildByTag(g_gradeTag);
+	if (chl)
+	{
+		removeChildByTag(g_gradeTag, true);
+	}
+
+	Size visibleSize = Director::getInstance()->getVisibleSize();
+
+	auto listView = ListView::create();
+	listView->setDirection(ScrollView::Direction::HORIZONTAL);
+	// 设置ListView的背景图片
+	listView->setBackGroundImage("green_edit.png");
+	// 设置背景图片作为九宫格填充
+	listView->setBackGroundImageScale9Enabled(true);
+	listView->setContentSize(visibleSize);
+	listView->addEventListener([=](Ref *pSender, ListView::EventType type) {
+		switch (type)
+		{
+		case ListView::EventType::ON_SELECTED_ITEM_END:
+		{
+			ListView* listView = static_cast<ListView*>(pSender);
+			int index = listView->getCurSelectedIndex();
+			if (index < _vecGrade.size())
+			{
+				std::string grade = _vecGrade[index];
+				std::string gradeIndex;
+				GetValueForKey(grade, gradeIndex, defaultStr);
+				std::vector<int> vecIndex;
+				GetVec(gradeIndex, vecIndex);
+				_vecWords.clear();
+				SearchSqlite::GetInstance().SearchValue(vecIndex, grade, _vecWords);
+				//切换展示内容;
+				_bGradeFlag = true;
+			}
+
+			break;
+		}
+		default:
+			break;
+		}
+	});
+
+}
+
+void EnglishClass::onEnter()
+{
+	Layer::onEnter();
+
+	if (_bGradeFlag)
+	{
+		onEnterGrade();
+	}
+	else
+	{
+		onEnterContent();
+	}
 }
