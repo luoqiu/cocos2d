@@ -96,7 +96,8 @@ void ListViewTest::onEnter()
 				case 0:
 				{
 					auto scence = EnglishClass::createScene();
-					Director::getInstance()->pushScene(scence);
+					//Director::getInstance()->pushScene(scence);
+					Director::getInstance()->replaceScene(scence);
 					break;
 				}					
 				default:

@@ -27,6 +27,7 @@
 #include "ShowAction.h"
 #include "LayoutTest.h"
 #include "ListViewTest.h"
+#include "configData.h"
  // #define USE_AUDIO_ENGINE 1
  // #define USE_SIMPLE_AUDIO_ENGINE 1
 
@@ -123,6 +124,7 @@ bool AppDelegate::applicationDidFinishLaunching() {
 	//auto scene = HelloWorld::createScene();
 	//auto scene = LayoutTest::createScene();
 	auto scene = ListViewTest::createScene();
+	//auto scene = EnglishClass::createScene();
 	// run
 	director->runWithScene(scene);
 

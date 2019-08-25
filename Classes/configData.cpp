@@ -225,7 +225,7 @@ void EnglishClass::onEnterGrade()
 		custom_button->setContentSize(Size(40, 20));
 		// 设置Button的TitleText为对应_array的文本内容
 		//custom_button->setTitleText(StringUtils::format("listview_item_%d", i));
-		custom_button->setTitleText("exit");
+		custom_button->setTitleText("返回上级");
 		// 设置Button的文本字体大小
 		custom_button->setTitleFontSize(12);
 

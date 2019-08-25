@@ -44,7 +44,7 @@ public:
 	void ShowWord();
 	void onEnterContent();
 	virtual void onEnter() override;
-
+	CREATE_FUNC(EnglishClass);
 private:
 	std::string _stage;
 	std::string _sGrade;
