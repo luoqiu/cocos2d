@@ -96,7 +96,7 @@ bool EnglishClass::init()
 	if (_sGrade.empty())
 	{
 		_sGrade = "人教第一册";
-		UserDefault::getInstance()->setStringForKey("sGrade", _sGrade);
+		UserDefault::getInstance()->setStringForKey("grade", _sGrade);
 		UserDefault::getInstance()->flush();
 	}
 
@@ -107,7 +107,7 @@ bool EnglishClass::init()
 		UserDefault::getInstance()->setStringForKey(_sGrade.c_str(), _index);
 		UserDefault::getInstance()->flush();
 	}
-
+	
 	_wordsOnce = UserDefault::getInstance()->getStringForKey("_wordsOnce");
 	if (_wordsOnce.empty())
 	{

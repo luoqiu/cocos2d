@@ -60,8 +60,9 @@ void SearchSqlite::SearchValue(const std::vector<int>& vecIndex, const std::stri
 	static char sql[256];
 	for (int i = 0;i < vecIndex.size(); ++i)
 	{
-		sprintf(sql, "select * from %s where rowid=%d", table.c_str(), vecIndex[i]);
-
+		sprintf(sql, "select * from %s where rowid=%d;", table.c_str(), vecIndex[i]);
+		//sprintf(sql, "select * from sqlite_master where type=\"table\";");
+		
 		char *zErrMsg = NULL;
 		rc = sqlite3_exec(db, sql, callback, (void*)&vecValue, &zErrMsg);
 
