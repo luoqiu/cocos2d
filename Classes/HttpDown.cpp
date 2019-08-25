@@ -8,16 +8,10 @@
 
 #include "HttpDown.h"
 
-static HttpDown g_instance;
-
-HttpDown& HttpDown::GetInstance()
-{
-	return g_instance;
-}
-
-
 void HttpDown::HttpGetTest(const std::string& url) 
 {
+	_metux.lock();
+	_busy = true;
 	auto request = new HttpRequest();
 	request->setUrl(url);
 	request->setRequestType(HttpRequest::Type::GET);
@@ -27,9 +21,15 @@ void HttpDown::HttpGetTest(const std::string& url)
 	request->release();
 }
 
-void HttpDown::SetBackCall(ResBackCall resBackCall)
+void HttpDown::SetBackCall(int index, ResBackCall resBackCall)
 {
 	_resBackCall = resBackCall;
+	_index = index;
+}
+
+bool HttpDown::Isbusy()
+{
+	return _busy;
 }
 
 void HttpDown::httpResponsecall(HttpClient* client, HttpResponse* response)
@@ -43,7 +43,7 @@ void HttpDown::httpResponsecall(HttpClient* client, HttpResponse* response)
 	long res = response->getResponseCode();
 	if (res != 200)
 	{
-		_resBackCall(NULL);
+		//_resBackCall(NULL);
 		return ;
 	}
 
@@ -53,7 +53,9 @@ void HttpDown::httpResponsecall(HttpClient* client, HttpResponse* response)
 	}
 	// 获取响应的报文，督导缓冲区中
 	std::vector<char>* vecRes = response->getResponseData();
-	_resBackCall(vecRes);
+	_resBackCall(vecRes, _index);
+	_busy = false;
+	_metux.unlock();
 }
 
 

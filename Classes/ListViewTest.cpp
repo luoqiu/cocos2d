@@ -91,14 +91,25 @@ void ListViewTest::onEnter()
             {
                 ListView* listView = static_cast<ListView*>(pSender);
                 log("select child end index = %ld", listView->getCurSelectedIndex());
+				switch (listView->getCurSelectedIndex())
+				{
+				case 0:
+				{
+					auto scence = EnglishClass::createScene();
+					Director::getInstance()->pushScene(scence);
+					break;
+				}					
+				default:
+					break;
+				}
 
-				auto effect = SimpleAudioEngine::getInstance();
-				effect->preloadEffect("a.wav");
-				effect->setEffectsVolume(1);
-				effect->playEffect("a.wav");
-				//ShowImage();
-				sFileName = "bed.jpg";
-				onMenuGetTestClicked(NULL);
+// 				auto effect = SimpleAudioEngine::getInstance();
+// 				effect->preloadEffect("a.wav");
+// 				effect->setEffectsVolume(1);
+// 				effect->playEffect("a.wav");
+// 				//ShowImage();
+// 				sFileName = "bed.jpg";
+// 				onMenuGetTestClicked(NULL);
 
 
                 break;
@@ -255,7 +266,7 @@ void ListViewTest::ShowResImg(std::vector<char>* buffer)
 
 		fclose(file);
 
-		ShowImage(filePath);
+		//ShowImage(filePath);
 	}
 	else
 	{
@@ -265,8 +276,8 @@ void ListViewTest::ShowResImg(std::vector<char>* buffer)
 
 void ListViewTest::GetImgRes()
 {
-	HttpDown::GetInstance().SetBackCall(CC_CALLBACK_1(ListViewTest::ShowResImg, this));
-	HttpDown::GetInstance().HttpGetTest(vUrls[index]);
+	//HttpDown::GetInstance().SetBackCall(CC_CALLBACK_1(ListViewTest::ShowResImg, this));
+	//HttpDown::GetInstance().HttpGetTest(vUrls[index]);
 }
 
 void ListViewTest::GetRes(std::vector<char>* p)
@@ -295,20 +306,20 @@ void ListViewTest::GetRes(std::vector<char>* p)
 //get请求
 void ListViewTest::onMenuGetTestClicked(cocos2d::CCObject *sender)
 {
-	std::string filepath = FileUtils::getInstance()->getWritablePath();
-	filepath += sFileName;
-	if (FileUtils::getInstance()->isFileExist(filepath))
-	{
-		ShowError(filepath + " is Exist");
-		ShowLocalImage(filepath);
-		return;
-	}
-
-	HttpDown::GetInstance().SetBackCall(CC_CALLBACK_1(ListViewTest::GetRes,this));
-
-	std::string urlPath = path + sFileName;
-
-	HttpDown::GetInstance().HttpGetTest(urlPath);
+// 	std::string filepath = FileUtils::getInstance()->getWritablePath();
+// 	filepath += sFileName;
+// 	if (FileUtils::getInstance()->isFileExist(filepath))
+// 	{
+// 		ShowError(filepath + " is Exist");
+// 		ShowLocalImage(filepath);
+// 		return;
+// 	}
+// 
+// 	HttpDown::GetInstance().SetBackCall(CC_CALLBACK_1(ListViewTest::GetRes,this));
+// 
+// 	std::string urlPath = path + sFileName;
+// 
+// 	HttpDown::GetInstance().HttpGetTest(urlPath);
 
 
 // 	return;

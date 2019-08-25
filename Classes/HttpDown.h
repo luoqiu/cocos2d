@@ -17,19 +17,23 @@ USING_NS_CC;
 
 using namespace network;
 
-typedef std::function<void(std::vector<char>*)> ResBackCall;
+typedef std::function<void(std::vector<char>*,int)> ResBackCall;
 
 typedef 
 class HttpDown
 {
 public:
-	static HttpDown& GetInstance();
+	HttpDown():_busy(true) {};
 	void HttpGetTest(const std::string& url);
-	void SetBackCall(ResBackCall resBackCall);
+	//void SetBackCall(ResBackCall resBackCall);
+	void SetBackCall(int index, ResBackCall resBackCall);
+	bool Isbusy();
 private:
 	void httpResponsecall(HttpClient* client, HttpResponse* response);
 	ResBackCall _resBackCall;
-
+	int _index;
+	bool _busy;
+	std::mutex _metux;
 };
 
 #endif /* defined(__UITest__TextTest__) */
