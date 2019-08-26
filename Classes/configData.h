@@ -41,9 +41,11 @@ public:
 	void RetryDownImg(int index);
 	void callBackHtml(std::vector<char>* pRes, int index);//回调处理响应的html网页
 	void ThreadDownImg(int index, const std::string & words);
-	void ShowWord();
+	void DownWordPicture();
+	void LoadImg();
 	void onEnterContent();
 	virtual void onEnter() override;
+	virtual void draw(Renderer *renderer, const Mat4& transform, uint32_t flags) override;
 	CREATE_FUNC(EnglishClass);
 private:
 	std::string _stage;

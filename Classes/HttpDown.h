@@ -23,7 +23,7 @@ typedef
 class HttpDown
 {
 public:
-	HttpDown():_busy(true) {};
+	HttpDown():_busy(false) {};
 	void HttpGetTest(const std::string& url);
 	//void SetBackCall(ResBackCall resBackCall);
 	void SetBackCall(int index, ResBackCall resBackCall);

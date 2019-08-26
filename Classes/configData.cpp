@@ -85,7 +85,7 @@ bool EnglishClass::init()
 	_bGradeFlag = true;
 
 	_stage = UserDefault::getInstance()->getStringForKey("stage");
-	if (_stage.empty())
+	if (_stage.empty() || _stage != "小学英语")
 	{
 		_stage = "小学英语";
 		UserDefault::getInstance()->setStringForKey("stage", _stage);
@@ -125,7 +125,7 @@ bool EnglishClass::init()
 
 	_vecSerialumber.clear();
 	_vecHttpDown.clear();
-	for (int i = atoi(_index.c_str()) + 1; i < atoi(_wordsOnce.c_str()); ++i)
+	for (int i = atoi(_index.c_str()) + 1; i <= atoi(_wordsOnce.c_str())+1; ++i)
 	{
 		HTTPDOWNPTR httpDown(new HttpDown());
 		_vecHttpDown.push_back(httpDown);
@@ -133,7 +133,7 @@ bool EnglishClass::init()
 	}
 
 	SearchSqlite::GetInstance().SearchValue(_vecSerialumber, _sGrade, _vecWords);
-
+	DownWordPicture();
 	return true;
 }
 
@@ -253,21 +253,17 @@ void EnglishClass::callBackImg(std::vector<char>* pRes, int index)
 	{
 		RetryDownImg(index);
 		return;
-	}
+	}	
 	
-	float Imgcale = img.getWidth() > img.getHeight() ? img.getWidth() / g_maxLen : img.getHeight() / g_maxLen;
 	std::string imgPath = FileUtils::getInstance()->getWritablePath() + "/" + _vecWords[index] + ".jpg";
-	img.saveToFile(imgPath);
-
-	_mUrls.erase(index);
-
-	CCTexture2D texture;
-
-	texture.initWithImage(&img);
-	auto sprit = Sprite::createWithTexture(&texture);
-	sprit->setPosition(Vec2(200, 200));
-	sprit->setScale(1 / Imgcale);
-	addChild(sprit);
+	if (!img.saveToFile(imgPath, false))
+	{
+		RetryDownImg(index);
+	}
+	else
+	{
+		_mUrls.erase(index);
+	}	
 }
 
 void EnglishClass::RetryDownImg(int index)
@@ -333,7 +329,7 @@ void EnglishClass::ThreadDownImg(int index, const std::string& imgUrl)
 
 }
 
-void EnglishClass::ShowWord()
+void EnglishClass::DownWordPicture()
 {
 	auto imgPath = FileUtils::getInstance()->getWritablePath();
 	for (int i = 0 ; i < _vecWords.size();++i)
@@ -348,6 +344,26 @@ void EnglishClass::ShowWord()
 		}
 
 	}
+}
+
+void EnglishClass::LoadImg()
+{	
+	std::string wordPath = _stage + "/" + _sGrade + "/" + _vecWords[_indexWord] + ".jpg";
+	if (!FileUtils::getInstance()->isFileExist(wordPath))
+	{
+		return;
+	}
+	CCImage img;
+	img.initWithImageFile(wordPath);
+
+	float Imgcale = img.getWidth() > img.getHeight() ? img.getWidth() / g_maxLen : img.getHeight() / g_maxLen;
+	CCTexture2D texture;
+
+	texture.initWithImage(&img);
+	auto sprit = Sprite::createWithTexture(&texture);
+	sprit->setPosition(Vec2(200, 200));
+	sprit->setScale(1 / Imgcale);
+	addChild(sprit);
 }
 
 void EnglishClass::onEnterContent()
@@ -379,13 +395,19 @@ void EnglishClass::onEnterContent()
 			case 0://上个单词
 				_indexWord = (_indexWord + _vecWords.size() - 1) % _vecWords.size();
 				break;
+			case 5:
 			case 1://发音
 			{
-				std::string imgPath = _stage + "/" + _sGrade + "/" + _vecWords[index] + ".wav";
+				std::string voicePath = _stage + "/" + _sGrade + "/" + _vecWords[_indexWord] + ".wav";
+				if (!FileUtils::getInstance()->isFileExist(voicePath))
+				{
+					log("file %s is not exists", voicePath.c_str());
+					break;
+				}
 				auto effect = SimpleAudioEngine::getInstance();
-				effect->preloadEffect(imgPath.c_str());
+				effect->preloadEffect(voicePath.c_str());
 				effect->setEffectsVolume(1);
-				effect->playEffect(imgPath.c_str());
+				effect->playEffect(voicePath.c_str());
 				break;
 			}				
 			case 2://下个单词
@@ -396,6 +418,7 @@ void EnglishClass::onEnterContent()
 				_indexWord = 0;
 				//启动线程完成网络图下载，加载图片
 				//...
+				LoadImg();
 				break;
 			case 4://返回年级选择
 // 				auto chlContent = getChildByTag(g_contentTag);
@@ -405,6 +428,7 @@ void EnglishClass::onEnterContent()
 				}
 				_bGradeFlag = true;
 				break;
+			
 			default:
 				break;
 			}
@@ -429,12 +453,76 @@ void EnglishClass::onEnterContent()
 		}
 	});
 
+	for (int i = 0; i < sizeof(contentMenu)/sizeof(contentMenu[0]); ++i)
+	{
+		// 创建一个Button
+		Button* custom_button = Button::create("button.png", "buttonHighlighted.png");
+		// 设置Button的Name
+		custom_button->setName(_vecGrade[i]);
+		// 设置Button是否九宫格填充
+		custom_button->setScale9Enabled(true);
+		// 设置Button的ContentSize
+		custom_button->setContentSize(Size(40, 20));
+		// 设置Button的TitleText为对应_array的文本内容
+		//custom_button->setTitleText(StringUtils::format("listview_item_%d", i));
+		custom_button->setTitleText(contentMenu[i].name);
+		// 设置Button的文本字体大小
+		custom_button->setTitleFontSize(12);
+
+		// 创建一个Layout，用来添加Button
+		Layout *custom_item = Layout::create();
+		// 设置Layout的ContentSize和Button的ContentSize一致
+		custom_item->setContentSize(custom_button->getContentSize());
+		// 设置Layout的坐标位置
+		custom_button->setPosition(Vec2(custom_item->getContentSize().width / 2.0f, custom_item->getContentSize().height / 2.0f));
+		// 将Button添加为Layout的字节
+		custom_item->addChild(custom_button);
+		// 将Layout添加为ListView的子节点
+		listView->addChild(custom_item);
+
+	}
+	{
+		// 创建一个Button  单词显示
+		Button* custom_button = Button::create("button.png", "buttonHighlighted.png");
+		// 设置Button的Name
+		custom_button->setName("exit");
+		// 设置Button是否九宫格填充
+		custom_button->setScale9Enabled(true);
+		// 设置Button的ContentSize
+		custom_button->setContentSize(Size(40, 20));
+		// 设置Button的TitleText为对应_array的文本内容
+		//custom_button->setTitleText(StringUtils::format("listview_item_%d", i));
+		custom_button->setTitleText(_vecWords[_indexWord]);
+		// 设置Button的文本字体大小
+		custom_button->setTitleFontSize(12);
+
+		// 创建一个Layout，用来添加Button
+		Layout *custom_item = Layout::create();
+		// 设置Layout的ContentSize和Button的ContentSize一致
+		custom_item->setContentSize(custom_button->getContentSize());
+		// 设置Layout的坐标位置
+		custom_button->setPosition(Vec2(custom_item->getContentSize().width / 2.0f, custom_item->getContentSize().height / 2.0f));
+		// 将Button添加为Layout的字节
+		custom_item->addChild(custom_button);
+		// 将Layout添加为ListView的子节点
+		listView->addChild(custom_item);
+	}
+
+	listView->setTag(g_gradeTag);
+	addChild(listView);
+
 }
 
 void EnglishClass::onEnter()
 {
 	Layer::onEnter();
 
+	onEnterGrade();	
+}
+
+void EnglishClass::draw(Renderer * renderer, const Mat4 & transform, uint32_t flags)
+{
+	//Layer::draw();
 	if (_bGradeFlag)
 	{
 		onEnterGrade();

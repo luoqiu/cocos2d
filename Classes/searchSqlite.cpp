@@ -1,5 +1,6 @@
 #include "searchSqlite.h"
 #include "cocos2d.h"
+#include "GetUrl.h"
 extern "C"
 {
 #include "sqlite3.h"
@@ -22,7 +23,9 @@ static int callback(void *data, int argc, char **argv, char **azColName)
 		//log("%d = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
 		if (argv[i])
 		{
-			vecValue->push_back(argv[i]);
+			char value[64];
+			GetUrl::GetInstance().u2g(argv[i], strlen(argv[i]), value, sizeof(value));
+			vecValue->push_back(value);
 		}
 	}
 
@@ -58,13 +61,19 @@ void SearchSqlite::SearchValue(const std::vector<int>& vecIndex, const std::stri
 		return ;
 	}
 	static char sql[256];
-	for (int i = 0;i < vecIndex.size(); ++i)
+	static char sqlUTF8[256 * 6];
+	for (int i = 0; i < vecIndex.size(); ++i)
 	{
+		//std::string sql = StringUtils::format("select * from %s where rowid=%d;", table.c_str(), vecIndex[i]);
+
 		sprintf(sql, "select * from %s where rowid=%d;", table.c_str(), vecIndex[i]);
-		//sprintf(sql, "select * from sqlite_master where type=\"table\";");
+		int sqlLen = strlen(sql);
+		int uft8Len = sizeof(sqlUTF8);
+		
+		GetUrl::GetInstance().g2u(sql, sqlLen, sqlUTF8, uft8Len);
 		
 		char *zErrMsg = NULL;
-		rc = sqlite3_exec(db, sql, callback, (void*)&vecValue, &zErrMsg);
+		rc = sqlite3_exec(db, sqlUTF8, callback, (void*)&vecValue, &zErrMsg);
 
 		if (rc != SQLITE_OK) {
 			log("SQL error: %s\n", zErrMsg);
