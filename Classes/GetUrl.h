@@ -25,6 +25,7 @@ public:
 	int code_convert(char * from_charset, char * to_charset, const char * inbuf, size_t inlen, char * outbuf, size_t outlen);
 	int u2g(char * inbuf, size_t inlen, char * outbuf, size_t outlen);
 	int g2u(char * inbuf, size_t inlen, char * outbuf, size_t outlen);
+	void PcreRegex(const std::string & res, std::vector<std::string>& vUrls);
 private:
 };
 

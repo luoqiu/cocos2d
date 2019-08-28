@@ -59,6 +59,8 @@ private:
 	int _indexWord;
 	std::vector<HTTPDOWNPTR> _vecHttpDown;
 	std::map<int, IndexVec> _mUrls;
+	std::mutex _mutex;
+
 };
 
 #endif /* defined(__UITest__TextTest__) */

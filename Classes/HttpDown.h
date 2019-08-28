@@ -24,12 +24,12 @@ class HttpDown
 {
 public:
 	HttpDown():_busy(false) {};
-	void HttpGetTest(const std::string& url);
-	//void SetBackCall(ResBackCall resBackCall);
+	void HttpGetTest(const std::string& url, int urlType = 0);
 	void SetBackCall(int index, ResBackCall resBackCall);
 	bool Isbusy();
 private:
-	void httpResponsecall(HttpClient* client, HttpResponse* response);
+	void htmlResponsecall(HttpClient* client, HttpResponse* response);
+	void jpgResponsecall(HttpClient * client, HttpResponse * response);
 	ResBackCall _resBackCall;
 	int _index;
 	bool _busy;

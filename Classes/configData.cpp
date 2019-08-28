@@ -12,7 +12,7 @@
 #include <thread>
 #include "GetUrl.h"
 #include "SimpleAudioEngine.h"
-
+#include "curltest.h"
 using namespace CocosDenshion;
 using namespace ui;
 static const std::string defaultStr = "1";
@@ -134,17 +134,13 @@ bool EnglishClass::init()
 
 	SearchSqlite::GetInstance().SearchValue(_vecSerialumber, _sGrade, _vecWords);
 	DownWordPicture();
+
 	return true;
 }
 
-
 void EnglishClass::onEnterGrade()
 {
-	auto chl = getChildByTag(g_contentTag);
-	if (chl)
-	{
-		removeChildByTag(g_contentTag, true);
-	}
+	Layer::onEnter();
 
 	Size visibleSize = Director::getInstance()->getVisibleSize();
 
@@ -154,7 +150,7 @@ void EnglishClass::onEnterGrade()
 	listView->setBackGroundImage("green_edit.png");
 	// ÉèÖÃ±³¾°Í¼Æ¬×÷Îª¾Å¹¬¸ñÌî³ä
 	listView->setBackGroundImageScale9Enabled(true);
-	listView->setContentSize(visibleSize);
+	listView->setContentSize(visibleSize - Size(1, 1));
 	listView->addEventListener([=](Ref *pSender, ListView::EventType type) {
 		switch (type)
 		{
@@ -173,6 +169,15 @@ void EnglishClass::onEnterGrade()
 				SearchSqlite::GetInstance().SearchValue(vecIndex, grade, _vecWords);
 				//ÇÐ»»Õ¹Ê¾ÄÚÈÝ;
 				_bGradeFlag = false;
+
+				auto chl = getChildByTag(g_gradeTag);
+				if (chl)
+				{
+					chl->setVisible(false);
+					/*removeChildByTag(g_gradeTag);*/
+					removeChild(chl);					
+					onEnterContent();
+				}
 			}
 			else
 			{
@@ -276,23 +281,91 @@ void EnglishClass::RetryDownImg(int index)
 		return;
 	}
 
-	for (int i = 0; i < _vecHttpDown.size(); ++i)
+	CDownloader ttt;
+	//std::string value;
+	std::vector<char> vecImg;
+	ttt.getUrlData(indexVec.vecUrl[indexVec.index].c_str(), vecImg);
+
+	if (vecImg.empty())
 	{
-		HTTPDOWNPTR& http = _vecHttpDown[i];
-		if (http->Isbusy())
-		{
-			if (i == _vecHttpDown.size() - 1)
-			{
-				i = 0;
-			}
-			continue;
-		}
-		else
-		{
-			http->SetBackCall(index, CC_CALLBACK_2(EnglishClass::callBackImg, this));
-			http->HttpGetTest(indexVec.vecUrl[indexVec.index]);
-		}
+		RetryDownImg(index);
+		return;
 	}
+
+	std::string imgName = _vecWords[index]+".jpg";
+	std::string path = FileUtils::getInstance()->getWritablePath() + "/" + imgName;
+	
+	if (FileUtils::getInstance()->isFileExist(path))
+	{
+		FileUtils::getInstance()->removeFile(path);
+	}
+
+// 	FILE* file = fopen(path.c_str(), "wb");
+// 	if (file)
+// 	{
+// 		int len = fwrite(value.c_str(), 1, value.size(), file);
+// 		if (len != value.size())
+// 		{
+// 			
+// 			return;
+// 		}
+// 
+// 		fclose(file);
+// 	}
+
+	CCImage img;
+	//img.initWithImageData((const unsigned char*)&value[0], value.size());
+	img.initWithImageData((const unsigned char*)&vecImg[0], vecImg.size());
+	//img.initWithImageFile(path);
+	if (img.getWidth() == 0 || img.getHeight() == 0)
+	{
+		RetryDownImg(index);
+		return;
+	}
+
+	std::string imgPath = FileUtils::getInstance()->getWritablePath() + "/" + _vecWords[index] + ".jpg";
+	if (!img.saveToFile(imgPath, false))
+	{
+		RetryDownImg(index);
+	}
+	else
+	{
+		_mUrls.erase(index);
+	}
+
+
+// 	for (int i = 0; i < _vecHttpDown.size(); ++i)
+// 	{
+// 		HTTPDOWNPTR& http = _vecHttpDown[i];
+// 		if (http->Isbusy())
+// 		{
+// 			if (i == _vecHttpDown.size() - 1)
+// 			{
+// 				i = 0;
+// 			}
+// 			continue;
+// 		}
+// 		else
+// 		{
+// 			http->SetBackCall(index, CC_CALLBACK_2(EnglishClass::callBackImg, this));
+// 			http->HttpGetTest(indexVec.vecUrl[indexVec.index]);
+// 		}
+// 	}
+
+// 	HTTPDOWNPTR httpDown(new HttpDown());
+// 	httpDown->SetBackCall(index, CC_CALLBACK_2(EnglishClass::callBackImg, this));
+// 	httpDown->HttpGetTest(indexVec.vecUrl[indexVec.index]);
+
+// 	HTTPDOWNPTR& http = _vecHttpDown[0];
+// 	while (true)
+// 	{
+// 		if (!http->Isbusy())
+// 		{
+// 			http->SetBackCall(index, CC_CALLBACK_2(EnglishClass::callBackImg, this));
+// 			http->HttpGetTest(indexVec.vecUrl[indexVec.index]);
+// 			break;
+// 		}
+// 	}
 }
 
 void EnglishClass::callBackHtml(std::vector<char>* pRes, int index)
@@ -309,24 +382,62 @@ void EnglishClass::callBackHtml(std::vector<char>* pRes, int index)
 
 void EnglishClass::ThreadDownImg(int index, const std::string& imgUrl)
 {	
-	for (int i = 0 ; i < _vecHttpDown.size(); ++i)
-	{
-		HTTPDOWNPTR& http= _vecHttpDown[i];
-		if (http->Isbusy())
-		{
-			if (i == _vecHttpDown.size()-1)
-			{
-				i = 0;				
-			}
-			continue;
-		}
-		else
-		{
-			http->SetBackCall(index, CC_CALLBACK_2(EnglishClass::callBackHtml, this));
-			http->HttpGetTest(imgUrl);
-		}
-	}
+	_mutex.lock();
+	CDownloader ttt;
+	
 
+	std::vector<char> vecUrl;
+
+	bool rc = ttt.getUrlData(imgUrl.c_str(), vecUrl);
+	if (vecUrl.empty())
+	{
+		_mutex.unlock();
+		return;
+	}
+	log(imgUrl.c_str());
+	log("vecUrl size:%d", vecUrl.size());
+	IndexVec& indexVecTmp = _mUrls[index];
+	indexVecTmp.index = -1;
+	std::string value;
+	value.assign(vecUrl.begin(), vecUrl.end());
+	GetUrl::GetInstance().getUrl(value, indexVecTmp.vecUrl);
+
+	RetryDownImg(index);
+	_mutex.unlock();
+// 	for (int i = 0 ; i < _vecHttpDown.size(); ++i)
+// 	{
+// 		HTTPDOWNPTR& http= _vecHttpDown[i];
+// 		if (http->Isbusy())
+// 		{
+// 			if (i == _vecHttpDown.size()-1)
+// 			{
+// 				i = 0;				
+// 			}
+// 			continue;
+// 		}
+// 		else
+// 		{
+// 			http->SetBackCall(index, CC_CALLBACK_2(EnglishClass::callBackHtml, this));
+// 			http->HttpGetTest(imgUrl);
+// 		}
+// 	}
+
+// 	HTTPDOWNPTR httpDown(new HttpDown());
+// 	httpDown->SetBackCall(index, CC_CALLBACK_2(EnglishClass::callBackHtml, this));
+// 	httpDown->HttpGetTest(imgUrl);
+
+
+
+// 	HTTPDOWNPTR& http = _vecHttpDown[0];
+// 	while (true)
+// 	{
+// 		if (!http->Isbusy())
+// 		{
+// 			http->SetBackCall(index, CC_CALLBACK_2(EnglishClass::callBackHtml, this));
+// 			http->HttpGetTest(imgUrl);
+// 			break;
+// 		}
+// 	}
 }
 
 void EnglishClass::DownWordPicture()
@@ -339,8 +450,8 @@ void EnglishClass::DownWordPicture()
 		{
 			//ÐÂÆôÏß³ÌÍøÂçÏÂÔØÍ¼Æ¬
 			std::string searchWord=g_baiduimgPath + _vecWords[i];
-			std::thread t(&EnglishClass::ThreadDownImg, this, i, img);
-			t.detach();
+			std::thread t(&EnglishClass::ThreadDownImg, this, i, searchWord);
+			t.detach();			
 		}
 
 	}
@@ -368,11 +479,7 @@ void EnglishClass::LoadImg()
 
 void EnglishClass::onEnterContent()
 {
-	auto chl = getChildByTag(g_gradeTag);
-	if (chl)
-	{
-		removeChildByTag(g_gradeTag, true);
-	}
+	Layer::onEnter();
 
 	Size visibleSize = Director::getInstance()->getVisibleSize();
 
@@ -382,7 +489,7 @@ void EnglishClass::onEnterContent()
 	listView->setBackGroundImage("green_edit.png");
 	// ÉèÖÃ±³¾°Í¼Æ¬×÷Îª¾Å¹¬¸ñÌî³ä
 	listView->setBackGroundImageScale9Enabled(true);
-	listView->setContentSize(visibleSize);
+	listView->setContentSize(/*Size(visibleSize.width-1, visibleSize.height-1)*/visibleSize - Size(1,1));
 	listView->addEventListener([=](Ref *pSender, ListView::EventType type) {
 		switch (type)
 		{
@@ -425,6 +532,7 @@ void EnglishClass::onEnterContent()
  				if (getChildByTag(g_contentTag))
 				{
 					removeChildByTag(g_contentTag);
+					onEnterGrade();
 				}
 				_bGradeFlag = true;
 				break;
@@ -515,7 +623,7 @@ void EnglishClass::onEnterContent()
 
 void EnglishClass::onEnter()
 {
-	Layer::onEnter();
+	
 
 	onEnterGrade();	
 }
@@ -523,12 +631,12 @@ void EnglishClass::onEnter()
 void EnglishClass::draw(Renderer * renderer, const Mat4 & transform, uint32_t flags)
 {
 	//Layer::draw();
-	if (_bGradeFlag)
-	{
-		onEnterGrade();
-	}
-	else
-	{
-		onEnterContent();
-	}
+// 	if (_bGradeFlag)
+// 	{
+// 		onEnterGrade();
+// 	}
+// 	else
+// 	{
+// 		onEnterContent();
+// 	}
 }
