@@ -70,7 +70,7 @@ void GradeLayer::onEnter()
 
 	this->addChild(listView);
 
-	for (int i = 0; i < _vecGrade.size(); ++i)
+	for (size_t i = 0; i < _vecGrade.size(); ++i)
 	{
 		auto custom_button = Button::create("button.png", "buttonHighlighted.png");
 		// 设置Button的Name
@@ -80,7 +80,6 @@ void GradeLayer::onEnter()
 		// 设置Button的ContentSize
 		custom_button->setContentSize(Size(40, 20));
 		// 设置Button的TitleText为对应_array的文本内容
-		//custom_button->setTitleText(StringUtils::format("listview_item_%d", i));
 		custom_button->setTitleText(_vecGrade[i]);
 		// 设置Button的文本字体大小
 		custom_button->setTitleFontSize(12);

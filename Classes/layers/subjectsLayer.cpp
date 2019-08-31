@@ -14,8 +14,8 @@ typedef struct _SubLayerMenu
 
 std::string MainMenuName[] =
 {
-	"英语",
-	"数学",
+	"小学英语",
+	"小学数学",
 	"关于",
 	"退出",
 };
@@ -28,7 +28,7 @@ SubLayerMenu menu[] =
 	{MainMenuName[3], [](const std::string& subName) {Director::getInstance()->end(); }},
 };
 
-static int items = sizeof(menu) / sizeof(menu[0]);
+static size_t items = sizeof(menu) / sizeof(menu[0]);
 
 cocos2d::Scene * SubjectsLayer::createScene()
 {
