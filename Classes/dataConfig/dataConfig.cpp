@@ -17,15 +17,15 @@ void DataConfig::GetValueForKey(const std::string& key, std::string& value, cons
 	if (value.empty())
 	{
 		value = defaultValue;
-		UserDefault::getInstance()->setStringForKey("stage", defaultValue);
+		UserDefault::getInstance()->setStringForKey(key.c_str(), defaultValue);
 		UserDefault::getInstance()->flush();
 	}
 }
 
-void DataConfig::GetVec(const std::string& index, const  std::string& wordsOnce, std::vector<int>& vec)
+void DataConfig::GetVec(int index, int wordsOnce, std::vector<int>& vec)
 {
 	vec.clear();
-	for (int i = atoi(index.c_str()); i < atoi(wordsOnce.c_str()); ++i)
+	for (int i = index ; i < index+ wordsOnce; ++i)
 	{
 		vec.push_back(i);
 	}

@@ -32,8 +32,13 @@ public:
     CREATE_FUNC(ContentLayer);
     
     virtual void onEnter() override;
+	virtual bool init() override;
 private:
 	static std::string _grade;
+	int _gradeWordIndex;
+	int _wordsOnce;
+	int _vecWordIndex;
+	std::vector<std::string> _vecWords;
 };
 
 

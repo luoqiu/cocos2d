@@ -20,32 +20,16 @@ static int callback(void *data, int argc, char **argv, char **azColName)
 
 	for (i = 0; i < argc; i++) 
 	{
-		//log("%d = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
 		if (argv[i])
 		{
-			char value[64];
+			char value[64] = {0}, gbValue[64] = { 0 };
 			GetUrl::GetInstance().u2g(argv[i], strlen(argv[i]), value, sizeof(value));
+			GetUrl::GetInstance().u2g(value, 64, gbValue, 64);
 			vecValue->push_back(value);
 		}
 	}
 
 	return 0;
-}
-
-bool SearchSqlite::OpenDB(const std::string & dbPath)
-{
-// 	sqlite3 *db;
-// 	int rc = sqlite3_open(dbPath.c_str(), &db);
-// 
-// 	if (rc)
-// 	{
-// 		log("Can't open database: %s\n", sqlite3_errmsg(db));
-// 		return false;
-// 	}
-// 	
-// 	sqlite3_close(db);
-// 
- 	return true;
 }
 
 void SearchSqlite::SearchValue(const std::vector<int>& vecIndex, const std::string& table, std::vector<std::string>& vecValue)

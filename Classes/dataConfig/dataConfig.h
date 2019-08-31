@@ -19,7 +19,7 @@ public:
 
 	void GetValueForKey(const std::string & key, std::string & value, const std::string & defaultValue);
 
-	void GetVec(const std::string & index, const std::string & wordsOnce, std::vector<int>& vec);
+	void GetVec(int index, int wordsOnce, std::vector<int>& vec);
 
 
 };

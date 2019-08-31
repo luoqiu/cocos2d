@@ -10,7 +10,6 @@ class SearchSqlite
 {
 public:
 	static SearchSqlite & GetInstance();
-	bool OpenDB(const std::string& dbPath);
 	void SearchValue(const std::vector<int>& vecIndex, const std::string& table, std::vector<std::string>& vecValue);
 private:
 	std::mutex _mutex;

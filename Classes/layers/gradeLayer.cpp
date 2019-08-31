@@ -26,7 +26,7 @@ bool GradeLayer::init()
 
 	DataConfig::getInstance().GetValueForKey(_subject, _grade, "人教第一册");
 	std::vector<int> vecGrade;
-	DataConfig::getInstance().GetVec("1", "10", vecGrade);
+	DataConfig::getInstance().GetVec(1, 10, vecGrade);
 	SearchSqlite::GetInstance().SearchValue(vecGrade, _subject, _vecGrade);
 
 	return true;

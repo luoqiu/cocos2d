@@ -60,7 +60,7 @@ void EnglishClass::GetValueForKey(const std::string& key, std::string& value, co
 	if (value.empty())
 	{
 		value = defaultValue;
-		UserDefault::getInstance()->setStringForKey("stage", defaultValue);
+		UserDefault::getInstance()->setStringForKey(key.c_str(), defaultValue);
 		UserDefault::getInstance()->flush();
 	}
 }
@@ -453,7 +453,6 @@ void EnglishClass::DownWordPicture()
 			std::thread t(&EnglishClass::ThreadDownImg, this, i, searchWord);
 			t.detach();			
 		}
-
 	}
 }
 
