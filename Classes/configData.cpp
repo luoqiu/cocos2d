@@ -7,7 +7,7 @@
 //
 
 #include "configData.h"
-#include "searchSqlite.h"
+#include "sqlite3/searchSqlite.h"
 #include "ui/CocosGUI.h"
 #include <thread>
 #include "GetUrl.h"
@@ -27,16 +27,16 @@ typedef struct _ContentMenu
 {
 	std::string name;
 	//Scene* scene;
-	Widget::ccWidgetTouchCallback callBack;
+	//Widget::ccWidgetTouchCallback callBack;
 }ContentMenu;
 
 ContentMenu contentMenu[] =
 {
-	{"上一个单词",		[=](Ref* p, Widget::TouchEventType type) {}},
-	{"重复发音",		[=](Ref* p, Widget::TouchEventType type) {}},
-	{"下一个单词",		[=](Ref* p, Widget::TouchEventType type) {}},
-	{"完成本节单词",	[=](Ref* p, Widget::TouchEventType type) {}},
-	{"返回选择年级",	[=](Ref* p, Widget::TouchEventType type) {}},
+	"上一个单词",		//[=](Ref* p, Widget::TouchEventType type) {}},
+	"重复发音",		//[=](Ref* p, Widget::TouchEventType type) {}},
+	"下一个单词",		//[=](Ref* p, Widget::TouchEventType type) {}},
+	"完成本节单词",	//[=](Ref* p, Widget::TouchEventType type) {}},
+	"返回选择年级",	//[=](Ref* p, Widget::TouchEventType type) {}}
 };
 
 cocos2d::Scene * EnglishClass::createScene()
@@ -140,7 +140,7 @@ bool EnglishClass::init()
 
 void EnglishClass::onEnterGrade()
 {
-	Layer::onEnter();
+	//Layer::onEnter();
 
 	Size visibleSize = Director::getInstance()->getVisibleSize();
 
@@ -176,7 +176,7 @@ void EnglishClass::onEnterGrade()
 					chl->setVisible(false);
 					/*removeChildByTag(g_gradeTag);*/
 					removeChild(chl);					
-					onEnterContent();
+					//onEnterContent();
 				}
 			}
 			else
@@ -375,7 +375,7 @@ void EnglishClass::callBackHtml(std::vector<char>* pRes, int index)
 	indexVecTmp.index = -1;
 
 	std::string res(pRes->begin(), pRes->end());
-	GetUrl::GetInstance().getUrl(res, indexVecTmp.vecUrl);
+	GetUrl::GetInstance().Pcre2Regex(res, indexVecTmp.vecUrl);
 	
 	RetryDownImg(index);
 }
@@ -394,13 +394,13 @@ void EnglishClass::ThreadDownImg(int index, const std::string& imgUrl)
 		_mutex.unlock();
 		return;
 	}
-	log(imgUrl.c_str());
+	log("%s",imgUrl.c_str());
 	log("vecUrl size:%d", vecUrl.size());
 	IndexVec& indexVecTmp = _mUrls[index];
 	indexVecTmp.index = -1;
 	std::string value;
 	value.assign(vecUrl.begin(), vecUrl.end());
-	GetUrl::GetInstance().getUrl(value, indexVecTmp.vecUrl);
+	GetUrl::GetInstance().Pcre2Regex(value, indexVecTmp.vecUrl);
 
 	RetryDownImg(index);
 	_mutex.unlock();
@@ -479,7 +479,7 @@ void EnglishClass::LoadImg()
 
 void EnglishClass::onEnterContent()
 {
-	Layer::onEnter();
+	//Layer::onEnter();
 
 	Size visibleSize = Director::getInstance()->getVisibleSize();
 
@@ -528,14 +528,18 @@ void EnglishClass::onEnterContent()
 				LoadImg();
 				break;
 			case 4://返回年级选择
-// 				auto chlContent = getChildByTag(g_contentTag);
- 				if (getChildByTag(g_contentTag))
+			{
+				auto chlContent = getChildByTag(g_contentTag);
+				if (chlContent)
 				{
+					chlContent->setVisible(false);
 					removeChildByTag(g_contentTag);
-					onEnterGrade();
+					//onEnterGrade();
 				}
 				_bGradeFlag = true;
 				break;
+			}
+// 				
 			
 			default:
 				break;
@@ -623,20 +627,32 @@ void EnglishClass::onEnterContent()
 
 void EnglishClass::onEnter()
 {
-	
-
+	Layer::onEnter();
 	onEnterGrade();	
 }
-
-void EnglishClass::draw(Renderer * renderer, const Mat4 & transform, uint32_t flags)
+void EnglishClass::update(float delta)
 {
-	//Layer::draw();
-// 	if (_bGradeFlag)
-// 	{
-// 		onEnterGrade();
-// 	}
-// 	else
-// 	{
-// 		onEnterContent();
-// 	}
+	Node::update(delta);
+
+	if (_bGradeFlag)
+	{
+		onEnterGrade();
+	}
+	else
+	{
+		onEnterContent();
+	}
 }
+// 
+// void EnglishClass::draw(Renderer * renderer, const Mat4 & transform, uint32_t flags)
+// {
+// 	//Layer::draw();
+// // 	if (_bGradeFlag)
+// // 	{
+// // 		onEnterGrade();
+// // 	}
+// // 	else
+// // 	{
+// // 		onEnterContent();
+// // 	}
+// }

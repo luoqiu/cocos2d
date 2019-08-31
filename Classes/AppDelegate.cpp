@@ -23,11 +23,8 @@
  ****************************************************************************/
 
 #include "AppDelegate.h"
-#include "HelloWorldScene.h"
-#include "ShowAction.h"
-#include "LayoutTest.h"
-#include "ListViewTest.h"
-#include "configData.h"
+#include "layers/subjectsLayer.h"
+
  // #define USE_AUDIO_ENGINE 1
  // #define USE_SIMPLE_AUDIO_ENGINE 1
 
@@ -120,12 +117,8 @@ bool AppDelegate::applicationDidFinishLaunching() {
 
 	register_all_packages();
 
-	// create a scene. it's an autorelease object
-	//auto scene = HelloWorld::createScene();
-	//auto scene = LayoutTest::createScene();
-	auto scene = ListViewTest::createScene();
-	//auto scene = EnglishClass::createScene();
-	// run
+	auto scene = SubjectsLayer::createScene();
+
 	director->runWithScene(scene);
 
 	return true;

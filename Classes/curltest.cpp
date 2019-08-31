@@ -2,7 +2,7 @@
 //  Downloader.cpp
 
 #include "curltest.h"
-#include "curl/curl.h"
+#include <curl/curl.h>
 #include <cocos-ext.h>
 
 namespace cocos2d

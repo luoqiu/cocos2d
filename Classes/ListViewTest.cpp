@@ -9,7 +9,7 @@
 #include "ListViewTest.h"
 #include "SimpleAudioEngine.h"
 #include "ui/CocosGUI.h"
-#include "Scalejpeg.h"
+//#include "Scalejpeg.h"
 #include "platform/CCFileUtils.h"
 #include "deprecated/CCstring.h"
 #include "HttpDown.h"
@@ -29,7 +29,7 @@ typedef struct _MENU
 	Widget::ccWidgetTouchCallback callBack;
 }MENU;
 
-MENU menu[] =
+MENU subMenu[] =
 {
 	{"英语", [](Ref* p,Widget::TouchEventType type) {}},
 	{"数学", [](Ref* p,Widget::TouchEventType type) {}},
@@ -37,7 +37,7 @@ MENU menu[] =
 	{"退出", [](Ref* p,Widget::TouchEventType type) {}},
 };
 
-static int items = sizeof(menu) / sizeof(menu[0]);
+static int items = sizeof(subMenu) / sizeof(subMenu[0]);
 
 
 
@@ -149,10 +149,10 @@ void ListViewTest::onEnter()
         custom_button->setContentSize(Size(40, 20));
         // 设置Button的TitleText为对应_array的文本内容
         //custom_button->setTitleText(StringUtils::format("listview_item_%d", i));
-		custom_button->setTitleText(menu[i].name);
+		custom_button->setTitleText(subMenu[i].name);
         // 设置Button的文本字体大小
         custom_button->setTitleFontSize(12);
-		custom_button->addTouchEventListener(menu[i].callBack);
+		custom_button->addTouchEventListener(subMenu[i].callBack);
         // 创建一个Layout，用来添加Button
         Layout *custom_item = Layout::create();
         // 设置Layout的ContentSize和Button的ContentSize一致
@@ -291,7 +291,7 @@ void ListViewTest::GetRes(std::vector<char>* p)
 	}
 
 	std::string response(p->begin(), p->end());
-	GetUrl::GetInstance().getUrl(response, vUrls);
+	GetUrl::GetInstance().Pcre2Regex(response, vUrls);
 
 	if (vUrls.size() == 0)
 	{

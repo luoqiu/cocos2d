@@ -3,7 +3,7 @@
 #include "GetUrl.h"
 extern "C"
 {
-#include "sqlite3.h"
+#include "sqlite3/sqlite3.h"
 }
 USING_NS_CC;
 static SearchSqlite g_instance;
@@ -51,8 +51,17 @@ bool SearchSqlite::OpenDB(const std::string & dbPath)
 void SearchSqlite::SearchValue(const std::vector<int>& vecIndex, const std::string& table, std::vector<std::string>& vecValue)
 {
 	_mutex.lock();
+
+	std::string dbPath = FileUtils::getInstance()->getWritablePath()+"demo.db";
+
+	if (!FileUtils::getInstance()->isFileExist(dbPath))
+	{
+		auto data = FileUtils::getInstance()->getDataFromFile("demo.db");
+		FileUtils::getInstance()->writeDataToFile(data, dbPath);
+	}
+
 	sqlite3 *db;
-	int rc = sqlite3_open("demo.db", &db);
+	int rc = sqlite3_open(dbPath.c_str(), &db);
 
 	if (rc)
 	{
