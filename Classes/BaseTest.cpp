@@ -46,3 +46,14 @@ void BaseTest::backCallback(Ref *pSender)
 	//Director::getInstance()->replaceScene(Bt::createScene());
 }
 
+void BaseTest::addLog(const std::string & logTmp)
+{
+	CCTexture2D* texture = new CCTexture2D();
+	static int i = 1;
+
+	texture->initWithString(logTmp.c_str(), "", 15);
+	auto sprit = Sprite::createWithTexture(texture);
+	sprit->setPosition(Vec2(200, i++ * 20));
+	addChild(sprit,5);
+}
+

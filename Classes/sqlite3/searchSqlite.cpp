@@ -1,6 +1,7 @@
 #include "searchSqlite.h"
 #include "cocos2d.h"
 #include "GetUrl.h"
+#include "logger/logger.h"
 extern "C"
 {
 #include "sqlite3/sqlite3.h"
@@ -24,10 +25,13 @@ static int callback(void *data, int argc, char **argv, char **azColName)
 		{
 			char value[64] = {0}, gbValue[64] = { 0 };
 			GetUrl::GetInstance().u2g(argv[i], strlen(argv[i]), value, sizeof(value));
-			GetUrl::GetInstance().u2g(value, 64, gbValue, 64);
+			//GetUrl::GetInstance().u2g(value, 64, gbValue, 64);
 			vecValue->push_back(value);
 		}
 	}
+
+	std::string num = StringUtils::format("argc:%d", argc);
+	//Logger::getInstance().ShowLog(num);
 
 	return 0;
 }
@@ -36,12 +40,17 @@ void SearchSqlite::SearchValue(const std::vector<int>& vecIndex, const std::stri
 {
 	_mutex.lock();
 
-	std::string dbPath = FileUtils::getInstance()->getWritablePath()+"demo.db";
+	std::string dbPath = FileUtils::getInstance()->getWritablePath()+"/demo.db";
 
 	if (!FileUtils::getInstance()->isFileExist(dbPath))
 	{
 		auto data = FileUtils::getInstance()->getDataFromFile("demo.db");
-		FileUtils::getInstance()->writeDataToFile(data, dbPath);
+		if (!FileUtils::getInstance()->writeDataToFile(data, dbPath))
+		{
+			std::string num = StringUtils::format("getInstance()->writeDataToFile(data, dbPath):");
+			//Logger::getInstance().ShowLog(num);
+			return;
+		}		
 	}
 
 	sqlite3 *db;
@@ -50,6 +59,7 @@ void SearchSqlite::SearchValue(const std::vector<int>& vecIndex, const std::stri
 	if (rc)
 	{
 		log("Can't open database: %s\n", sqlite3_errmsg(db));
+		//Logger::getInstance().ShowLog("open db failed");
 		_mutex.unlock();
 		return ;
 	}
@@ -70,6 +80,7 @@ void SearchSqlite::SearchValue(const std::vector<int>& vecIndex, const std::stri
 
 		if (rc != SQLITE_OK) {
 			log("SQL error: %s\n", zErrMsg);
+			//Logger::getInstance().ShowLog("SQL error:");
 			sqlite3_free(zErrMsg);
 		}
 		else {

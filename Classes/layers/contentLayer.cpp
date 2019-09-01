@@ -11,11 +11,14 @@
 #include "sqlite3/searchSqlite.h"
 #include "dealImg/dealImage.h"
 #include "SimpleAudioEngine.h"
+#include "logger/logger.h"
 
 using namespace CocosDenshion;
 using namespace ui;
 std::string ContentLayer::_grade;
 static int g_contentLayerTag = 2;
+static int g_spriteWordImgTag = 3;
+static int g_labelWordImgTag = 4;
 
 static std::string contentMenu[] =
 {
@@ -26,6 +29,7 @@ static std::string contentMenu[] =
 	"返回选择年级",
 };
 
+static int menuNum = sizeof(contentMenu) / sizeof(contentMenu[0]);
 
 cocos2d::Scene * ContentLayer::createScene(const std::string& grade)
 {
@@ -57,18 +61,42 @@ bool ContentLayer::init()
 	DataConfig::getInstance().GetVec(_gradeWordIndex, _wordsOnce, vecWords);
 	SearchSqlite::GetInstance().SearchValue(vecWords, _grade, _vecWords);
 
-	imageDeal::GetInstance().init();
+	imageDeal::GetInstance().AddThread();
 	imageDeal::GetInstance().AddTask(_vecWords);
+
+	auto effect = SimpleAudioEngine::getInstance();
+	effect->setEffectsVolume(1);
+	for (int i=0;i< _vecWords.size();++i)
+	{
+		std::string voicePath = "voice/" + _vecWords[i] + ".wav";
+		if (!FileUtils::getInstance()->isFileExist(voicePath))
+		{
+			log("file %s is not exists", voicePath.c_str());
+			continue;;
+		}
+		effect->preloadEffect(voicePath.c_str());
+	}
+
 
 	return true;
 }
 
 
-
-void ContentLayer::onEnter()
+void ContentLayer::wordVoice()
 {
-	Layer::onEnter();
+	std::string voicePath = "voice/" + _vecWords[_vecWordIndex] + ".wav";
+	if (!FileUtils::getInstance()->isFileExist(voicePath))
+	{
+		log("file %s is not exists", voicePath.c_str());
+		return;
+	}
+	auto effect = SimpleAudioEngine::getInstance();
 
+	effect->playEffect(voicePath.c_str());
+}
+
+void ContentLayer::onEnterContent()
+{
 	Size visibleSize = Director::getInstance()->getVisibleSize();
 
 	auto listView = ListView::create();
@@ -77,7 +105,7 @@ void ContentLayer::onEnter()
 	listView->setBackGroundImage("green_edit.png");
 	// 设置背景图片作为九宫格填充
 	listView->setBackGroundImageScale9Enabled(true);
-	listView->setContentSize(/*Size(visibleSize.width-1, visibleSize.height-1)*/visibleSize - Size(1, 1));
+	listView->setContentSize(/*Size(visibleSize.width-1, visibleSize.height-1)*/visibleSize);
 	listView->addEventListener([=](Ref *pSender, ListView::EventType type) {
 		switch (type)
 		{
@@ -90,35 +118,40 @@ void ContentLayer::onEnter()
 			case 0://上个单词
 			{
 				_vecWordIndex = (_vecWordIndex + _vecWords.size() - 1) % _vecWords.size();
+				wordVoice();
 				break;
 			}
 			case 5:
 			case 1://发音
 			{
-				std::string voicePath = "voice/" + _vecWords[_vecWordIndex] + ".wav";
-				if (!FileUtils::getInstance()->isFileExist(voicePath))
-				{
-					log("file %s is not exists", voicePath.c_str());
-					break;
-				}
-				auto effect = SimpleAudioEngine::getInstance();
-				effect->preloadEffect(voicePath.c_str());
-				effect->setEffectsVolume(1);
-				effect->playEffect(voicePath.c_str());
+				wordVoice();
 				break;
 			}
 			case 2://下个单词
 			{
 				_vecWordIndex = (_vecWordIndex + 1) % _vecWords.size();
+				wordVoice();
 				break;
 			}
 			case 3://完成本节单词
 			{
 				_gradeWordIndex += _wordsOnce;
-
+				_vecWordIndex = 0;
+				UserDefault::getInstance()->setIntegerForKey(_grade.c_str(), _gradeWordIndex);
 				std::vector<int> vecWords;
 				DataConfig::getInstance().GetVec(_gradeWordIndex, _wordsOnce, vecWords);
+
+				_vecWords.clear();
 				SearchSqlite::GetInstance().SearchValue(vecWords, _grade, _vecWords);
+				if (_vecWords.size() < _wordsOnce)
+				{
+					_gradeWordIndex = 1;
+					vecWords.clear();
+					DataConfig::getInstance().GetVec(_gradeWordIndex, _wordsOnce, vecWords);
+
+					_vecWords.clear();
+					SearchSqlite::GetInstance().SearchValue(vecWords, _grade, _vecWords);
+				}
 				imageDeal::GetInstance().AddTask(_vecWords);
 
 				break;
@@ -133,6 +166,7 @@ void ContentLayer::onEnter()
 			default:
 				break;
 			}
+			
 		}
 		default:
 			break;
@@ -144,54 +178,109 @@ void ContentLayer::onEnter()
 		// 创建一个Button
 		Button* custom_button = Button::create("button.png", "buttonHighlighted.png");
 		// 设置Button的Name
+		custom_button->setTag(i);
 		custom_button->setName("menu");
 		// 设置Button是否九宫格填充
 		custom_button->setScale9Enabled(true);
 		// 设置Button的ContentSize
-		custom_button->setContentSize(Size(40, 20));
+		custom_button->setContentSize(Size(BT_WIDE + 20, BT_HEIGHT));
 		// 设置Button的TitleText为对应_array的文本内容
 		//custom_button->setTitleText(StringUtils::format("listview_item_%d", i));
 		custom_button->setTitleText(contentMenu[i]);
 		// 设置Button的文本字体大小
 		custom_button->setTitleFontSize(12);
-
+		
 		// 创建一个Layout，用来添加Button
 		Layout *custom_item = Layout::create();
 		// 设置Layout的ContentSize和Button的ContentSize一致
 		custom_item->setContentSize(custom_button->getContentSize());
 		// 设置Layout的坐标位置
-		custom_button->setPosition(Vec2(custom_item->getContentSize().width / 2.0f, visibleSize.height-40));
+		custom_button->setPosition(Vec2(custom_item->getContentSize().width / 2.0f, visibleSize.height / 2));
 		// 将Button添加为Layout的字节
 		custom_item->addChild(custom_button);
 		// 将Layout添加为ListView的子节点
 		listView->addChild(custom_item);
 	}
-	{
-		// 创建一个Button  单词显示
-		Button* custom_button = Button::create("button.png", "buttonHighlighted.png");
-		// 设置Button的Name
-		custom_button->setName("exit");
-		// 设置Button是否九宫格填充
-		custom_button->setScale9Enabled(true);
-		// 设置Button的ContentSize
-		custom_button->setContentSize(Size(40, 20));
-		// 设置Button的TitleText为对应_array的文本内容
-		custom_button->setTitleText(_vecWords[_vecWordIndex]);
-		// 设置Button的文本字体大小
-		custom_button->setTitleFontSize(12);
+// 	{
+// 		// 创建一个Button  单词显示
+// 		Button* custom_button = Button::create("button.png", "buttonHighlighted.png");
+// 		// 设置Button的Name
+// 		custom_button->setName("show");
+// 		custom_button->setTag(menuNum);
+// 		// 设置Button是否九宫格填充
+// 		custom_button->setScale9Enabled(true);
+// 		// 设置Button的ContentSize
+// 		custom_button->setContentSize(Size(BT_WIDE, BT_HEIGHT));
+// 		// 设置Button的TitleText为对应_array的文本内容
+// 		custom_button->setTitleText(_vecWords[_vecWordIndex]);
+// 		// 设置Button的文本字体大小
+// 		custom_button->setTitleFontSize(12);
+// 
+// 		// 创建一个Layout，用来添加Button
+// 		Layout *custom_item = Layout::create();
+// 		// 设置Layout的ContentSize和Button的ContentSize一致
+// 		custom_item->setContentSize(custom_button->getContentSize());
+// 		// 设置Layout的坐标位置
+// 		custom_button->setPosition(Vec2(custom_item->getContentSize().width / 2.0f, visibleSize.height / 2));
+// 		// 将Button添加为Layout的字节
+// 		custom_item->addChild(custom_button);
+// 		// 将Layout添加为ListView的子节点
+// 		listView->addChild(custom_item);
+// 	}
 
-		// 创建一个Layout，用来添加Button
-		Layout *custom_item = Layout::create();
-		// 设置Layout的ContentSize和Button的ContentSize一致
-		custom_item->setContentSize(custom_button->getContentSize());
-		// 设置Layout的坐标位置
-		custom_button->setPosition(Vec2(custom_item->getContentSize().width / 2.0f, visibleSize.height - 40));
-		// 将Button添加为Layout的字节
-		custom_item->addChild(custom_button);
-		// 将Layout添加为ListView的子节点
-		listView->addChild(custom_item);
-	}
-
+	listView->setPosition(Vec2::ZERO);
 	listView->setTag(g_contentLayerTag);
 	addChild(listView);
+}
+
+void ContentLayer::onEnter()
+{
+	Layer::onEnter();
+
+	onEnterContent();
+}
+
+
+void ContentLayer::draw(Renderer *renderer, const Mat4& transform, uint32_t flags)
+{
+	//Node::update(delta);
+
+// 	auto ch = getChildByTag(g_contentLayerTag);
+// 	if (ch)
+// 	{
+// 		ch->getChildByTag(menuNum);
+// 	}
+// 	Layer::draw(renderer, transform, flags);
+// 	onEnterContent();
+
+	auto winsize = Director::getInstance()->getWinSize();
+	if (getChildByTag(g_labelWordImgTag))
+	{
+		removeChildByTag(g_labelWordImgTag);
+	}
+
+	auto lb = Label::createWithSystemFont(_vecWords[_vecWordIndex], "", 20);
+	lb->setPosition(Size(winsize.width/2, winsize.height-60));
+	lb->setTag(g_labelWordImgTag);
+	addChild(lb);
+	std::string path = FileUtils::getInstance()->getWritablePath()+ _vecWords[_vecWordIndex] + ".jpg";
+	if (FileUtils::getInstance()->isFileExist(path))
+	{		
+		auto sp = getChildByTag(g_spriteWordImgTag);
+		if (sp)
+		{
+			removeChild(sp);
+		}
+		_wordImg.initWithImageFile(path);
+		float scale = _wordImg.getWidth() > _wordImg.getHeight() ? _wordImg.getWidth() / 160 : _wordImg.getHeight() / 160;
+		
+		
+		_textureImg.initWithImage(&_wordImg);
+		auto sprit = Sprite::createWithTexture(&_textureImg);	
+		sprit->setContentSize(sprit->getContentSize()/ scale);
+		//sprit->setScale(1 / scale);
+		sprit->setTag(g_spriteWordImgTag);
+		sprit->setPosition(Vec2(sprit->getContentSize()/ 2));
+		addChild(sprit, 5);		
+	}
 }

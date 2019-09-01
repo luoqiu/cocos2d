@@ -21,6 +21,8 @@ public:
 
 	void GetVec(int index, int wordsOnce, std::vector<int>& vec);
 
+	void GetChName(const std::string & key, std::string & value);
+
 
 };
 

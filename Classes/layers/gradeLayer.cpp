@@ -2,6 +2,7 @@
 #include "dataConfig/dataConfig.h"
 #include "sqlite3/searchSqlite.h"
 #include "layers/contentLayer.h"
+#include "GetUrl.h"
 
 using namespace cocos2d;
 using namespace ui;
@@ -24,11 +25,11 @@ bool GradeLayer::init()
 		return false;
 	}
 
-	DataConfig::getInstance().GetValueForKey(_subject, _grade, "人教第一册");
+	DataConfig::getInstance().GetValueForKey(_subject, _grade, "RJ_1");
 	std::vector<int> vecGrade;
 	DataConfig::getInstance().GetVec(1, 10, vecGrade);
 	SearchSqlite::GetInstance().SearchValue(vecGrade, _subject, _vecGrade);
-
+	//addLog(_subject);
 	return true;
 }
 
@@ -58,9 +59,15 @@ void GradeLayer::onEnter()
 			size_t index = listView->getCurSelectedIndex();
 			if (index >= _vecGrade.size())
 			{
-				Director::getInstance()->popScene();
+				Director::getInstance()->popScene();				
 			}
-			ContentLayer::createScene(_grade);
+			else
+			{
+				auto content = ContentLayer::createScene(_vecGrade[index]);
+				Director::getInstance()->pushScene(content);
+			}
+
+			break;
 		}
 		default:
 			break;
@@ -72,15 +79,20 @@ void GradeLayer::onEnter()
 
 	for (size_t i = 0; i < _vecGrade.size(); ++i)
 	{
+		std::string btLable;
+		DataConfig::getInstance().GetChName(_vecGrade[i], btLable);
+		char btLabelChr[64];
+		GetUrl::GetInstance().g2u((char*)btLable.c_str(), btLable.size(), btLabelChr, sizeof(btLabelChr));
+
 		auto custom_button = Button::create("button.png", "buttonHighlighted.png");
 		// 设置Button的Name
 		custom_button->setName("Title Button");
 		// 设置Button是否九宫格填充
 		custom_button->setScale9Enabled(true);
 		// 设置Button的ContentSize
-		custom_button->setContentSize(Size(40, 20));
+		custom_button->setContentSize(Size(BT_WIDE, BT_HEIGHT));
 		// 设置Button的TitleText为对应_array的文本内容
-		custom_button->setTitleText(_vecGrade[i]);
+		custom_button->setTitleText(btLabelChr);
 		// 设置Button的文本字体大小
 		custom_button->setTitleFontSize(12);
 		// 创建一个Layout，用来添加Button
@@ -102,7 +114,7 @@ void GradeLayer::onEnter()
 		// 设置Button是否九宫格填充
 		custom_button->setScale9Enabled(true);
 		// 设置Button的ContentSize
-		custom_button->setContentSize(Size(40, 20));
+		custom_button->setContentSize(Size(BT_WIDE, BT_HEIGHT));
 		// 设置Button的TitleText为对应_array的文本内容
 		//custom_button->setTitleText(StringUtils::format("listview_item_%d", i));
 		custom_button->setTitleText("返回上层");
@@ -120,4 +132,5 @@ void GradeLayer::onEnter()
 		// 将Layout添加为ListView的子节点
 		listView->addChild(custom_item);
 	}
+	listView->setPosition(Vec2::ZERO);
 }

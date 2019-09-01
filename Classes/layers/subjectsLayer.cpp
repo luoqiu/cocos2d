@@ -9,6 +9,7 @@ typedef std::function<void(const std::string&)> menuCallBack;
 typedef struct _SubLayerMenu
 {
 	std::string name;
+	std::string englishName;
 	menuCallBack callBack;
 }SubLayerMenu;
 
@@ -22,10 +23,10 @@ std::string MainMenuName[] =
 
 SubLayerMenu menu[] =
 {
-	{MainMenuName[0], [](const std::string& subName) {auto scence = GradeLayer::createScene(subName);Director::getInstance()->pushScene(scence);	}},
-	{MainMenuName[1],  [](const std::string& subName) {} },
-	{MainMenuName[2], [](const std::string& subName) {}},
-	{MainMenuName[3], [](const std::string& subName) {Director::getInstance()->end(); }},
+	{MainMenuName[0], "ENGLISH",	[](const std::string& subName) {auto scence = GradeLayer::createScene(subName);Director::getInstance()->pushScene(scence);	}},
+	{MainMenuName[1], "MATH",		[](const std::string& subName) {} },
+	{MainMenuName[2], "ABOUT",		[](const std::string& subName) {}},
+	{MainMenuName[3], "EXIT",		[](const std::string& subName) {Director::getInstance()->end(); }},
 };
 
 static size_t items = sizeof(menu) / sizeof(menu[0]);
@@ -65,7 +66,7 @@ void SubjectsLayer::onEnter()
 			{
 				break;
 			}
-			menu[index].callBack(menu[index].name);
+			menu[index].callBack(menu[index].englishName);
 		}
 		default:
 			break;
@@ -76,14 +77,14 @@ void SubjectsLayer::onEnter()
 	this->addChild(listView);
 
 	for (int i = 0; i < items; ++i)
-	{
+	{		
 		auto custom_button = Button::create("button.png", "buttonHighlighted.png");
 		// 设置Button的Name
 		custom_button->setName("Title Button");
 		// 设置Button是否九宫格填充
 		custom_button->setScale9Enabled(true);
 		// 设置Button的ContentSize
-		custom_button->setContentSize(Size(40, 20));
+		custom_button->setContentSize(Size(BT_WIDE, BT_HEIGHT));
 		// 设置Button的TitleText为对应_array的文本内容
 		//custom_button->setTitleText(StringUtils::format("listview_item_%d", i));
 		custom_button->setTitleText(menu[i].name);

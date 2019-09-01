@@ -30,3 +30,18 @@ void DataConfig::GetVec(int index, int wordsOnce, std::vector<int>& vec)
 		vec.push_back(i);
 	}
 }
+
+void DataConfig::GetChName(const std::string& key, std::string& value)
+{
+	std::string headStr;
+	int pos = key.find("X");
+	if (pos!=std::string::npos)
+	{
+		headStr = "新";
+	}
+
+	pos = key.find("_") + 1;
+
+	std::string num(&key[pos]);
+	value = headStr + "人教第" + num + "册";
+}
