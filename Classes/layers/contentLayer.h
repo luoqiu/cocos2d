@@ -36,8 +36,9 @@ public:
 	void onEnterContent();
 
 	virtual void onEnter() override;
+	void imgCallBack();
 	virtual bool init() override;
-	virtual void draw(Renderer *renderer, const Mat4& transform, uint32_t flags) override;
+	virtual void update(float delta) override;
 private:
 	static std::string _grade;
 	int _gradeWordIndex;
@@ -45,9 +46,10 @@ private:
 	int _vecWordIndex;
 	std::vector<std::string> _vecWords;
 
-	CCImage _wordImg;
-	CCTexture2D _textureImg;
-	CCTexture2D _textureTitle;
+	CCImage* _wordImg;
+	CCTexture2D* _textureImg;
+
+	CCTexture2D* _textureTitle;
 };
 
 

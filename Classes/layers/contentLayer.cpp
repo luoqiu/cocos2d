@@ -43,6 +43,10 @@ cocos2d::Scene * ContentLayer::createScene(const std::string& grade)
 
 bool ContentLayer::init()
 {
+	_wordImg = new CCImage();
+	_textureTitle = new CCTexture2D();
+	_textureImg = new CCTexture2D();
+
 	if (!Layer::init())
 	{
 		return false;
@@ -171,6 +175,7 @@ void ContentLayer::onEnterContent()
 		default:
 			break;
 		}
+		this->scheduleUpdate();
 	});
 
 	for (int i = 0; i < sizeof(contentMenu) / sizeof(contentMenu[0]); ++i)
@@ -201,32 +206,7 @@ void ContentLayer::onEnterContent()
 		// 将Layout添加为ListView的子节点
 		listView->addChild(custom_item);
 	}
-// 	{
-// 		// 创建一个Button  单词显示
-// 		Button* custom_button = Button::create("button.png", "buttonHighlighted.png");
-// 		// 设置Button的Name
-// 		custom_button->setName("show");
-// 		custom_button->setTag(menuNum);
-// 		// 设置Button是否九宫格填充
-// 		custom_button->setScale9Enabled(true);
-// 		// 设置Button的ContentSize
-// 		custom_button->setContentSize(Size(BT_WIDE, BT_HEIGHT));
-// 		// 设置Button的TitleText为对应_array的文本内容
-// 		custom_button->setTitleText(_vecWords[_vecWordIndex]);
-// 		// 设置Button的文本字体大小
-// 		custom_button->setTitleFontSize(12);
-// 
-// 		// 创建一个Layout，用来添加Button
-// 		Layout *custom_item = Layout::create();
-// 		// 设置Layout的ContentSize和Button的ContentSize一致
-// 		custom_item->setContentSize(custom_button->getContentSize());
-// 		// 设置Layout的坐标位置
-// 		custom_button->setPosition(Vec2(custom_item->getContentSize().width / 2.0f, visibleSize.height / 2));
-// 		// 将Button添加为Layout的字节
-// 		custom_item->addChild(custom_button);
-// 		// 将Layout添加为ListView的子节点
-// 		listView->addChild(custom_item);
-// 	}
+
 
 	listView->setPosition(Vec2::ZERO);
 	listView->setTag(g_contentLayerTag);
@@ -240,47 +220,65 @@ void ContentLayer::onEnter()
 	onEnterContent();
 }
 
-
-void ContentLayer::draw(Renderer *renderer, const Mat4& transform, uint32_t flags)
+void ContentLayer::imgCallBack()
 {
-	//Node::update(delta);
+	log("asfdasfd");
+}
 
-// 	auto ch = getChildByTag(g_contentLayerTag);
-// 	if (ch)
-// 	{
-// 		ch->getChildByTag(menuNum);
-// 	}
-// 	Layer::draw(renderer, transform, flags);
-// 	onEnterContent();
+void ContentLayer::update(float delta)
+{
+	Node::update(delta);
 
-	auto winsize = Director::getInstance()->getWinSize();
-	if (getChildByTag(g_labelWordImgTag))
+	auto winsize = Director::getInstance()->getVisibleSize();
+	auto lbtmp = getChildByTag(g_labelWordImgTag);
+	if (lbtmp)
 	{
 		removeChildByTag(g_labelWordImgTag);
+		lbtmp->release();
 	}
 
 	auto lb = Label::createWithSystemFont(_vecWords[_vecWordIndex], "", 20);
+	
 	lb->setPosition(Size(winsize.width/2, winsize.height-60));
 	lb->setTag(g_labelWordImgTag);
 	addChild(lb);
+
 	std::string path = FileUtils::getInstance()->getWritablePath()+ _vecWords[_vecWordIndex] + ".jpg";
 	if (FileUtils::getInstance()->isFileExist(path))
 	{		
-		auto sp = getChildByTag(g_spriteWordImgTag);
+		auto sp = (MenuItemImage*)getChildByTag(g_spriteWordImgTag);
 		if (sp)
 		{
+			sp->removeAllChildrenWithCleanup(true);
 			removeChild(sp);
 		}
-		_wordImg.initWithImageFile(path);
-		float scale = _wordImg.getWidth() > _wordImg.getHeight() ? _wordImg.getWidth() / 160 : _wordImg.getHeight() / 160;
+		_wordImg->initWithImageFile(path);
+		float scale = _wordImg->getWidth() > _wordImg->getHeight() ? _wordImg->getWidth() / 160 : _wordImg->getHeight() / 160;
 		
 		
-		_textureImg.initWithImage(&_wordImg);
-		auto sprit = Sprite::createWithTexture(&_textureImg);	
+		_textureImg->initWithImage(_wordImg);
+		auto sprit = Sprite::createWithTexture(_textureImg);	
 		sprit->setContentSize(sprit->getContentSize()/ scale);
 		//sprit->setScale(1 / scale);
-		sprit->setTag(g_spriteWordImgTag);
-		sprit->setPosition(Vec2(sprit->getContentSize()/ 2));
-		addChild(sprit, 5);		
+		//sprit->setTag(g_spriteWordImgTag);
+		sprit->setPosition(Vec2(winsize.width/2,sprit->getContentSize().height/ 2));
+		//addChild(sprit, 5);	
+
+		auto imgmenuTmp = getChildByTag(g_spriteWordImgTag);
+		if (imgmenuTmp)
+		{
+			removeChildByTag(g_spriteWordImgTag);
+			imgmenuTmp->release();
+		}
+		
+		auto imgItem = MenuItemImage::create();
+		_textureTitle->initWithString("hahaha", "", 40);
+		auto spriteMean = Sprite::createWithTexture(_textureTitle);
+		spriteMean->setPosition(Vec2(winsize.width / 2, sprit->getContentSize().height / 2));
+		imgItem->initWithNormalSprite(sprit, spriteMean,NULL,CC_CALLBACK_0(ContentLayer::imgCallBack,this));
+		imgItem->setTag(g_spriteWordImgTag);
+		
+		addChild(imgItem, 5);
+
 	}
 }
