@@ -50,6 +50,7 @@ private:
 	CCTexture2D* _textureImg;
 
 	CCTexture2D* _textureTitle;
+	std::set<std::string> _setStrWord;
 };
 
 

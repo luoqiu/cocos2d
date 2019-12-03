@@ -19,6 +19,7 @@ std::string ContentLayer::_grade;
 static int g_contentLayerTag = 2;
 static int g_spriteWordImgTag = 3;
 static int g_labelWordImgTag = 4;
+static int g_labelTag = 5;
 
 static std::string contentMenu[] =
 {
@@ -230,55 +231,44 @@ void ContentLayer::update(float delta)
 	Node::update(delta);
 
 	auto winsize = Director::getInstance()->getVisibleSize();
-	auto lbtmp = getChildByTag(g_labelWordImgTag);
-	if (lbtmp)
-	{
-		removeChildByTag(g_labelWordImgTag);
-		lbtmp->release();
-	}
+	std::string& word = _vecWords[_vecWordIndex];
 
-	auto lb = Label::createWithSystemFont(_vecWords[_vecWordIndex], "", 20);
-	
-	lb->setPosition(Size(winsize.width/2, winsize.height-60));
-	lb->setTag(g_labelWordImgTag);
-	addChild(lb);
-
-	std::string path = FileUtils::getInstance()->getWritablePath()+ _vecWords[_vecWordIndex] + ".jpg";
+	std::string path = FileUtils::getInstance()->getWritablePath()+ word + ".jpg";
 	if (FileUtils::getInstance()->isFileExist(path))
-	{		
-		auto sp = (MenuItemImage*)getChildByTag(g_spriteWordImgTag);
-		if (sp)
+	{	
+		if (_setStrWord.find(word) == _setStrWord.end())
 		{
-			sp->removeAllChildrenWithCleanup(true);
-			removeChild(sp);
-		}
-		_wordImg->initWithImageFile(path);
-		float scale = _wordImg->getWidth() > _wordImg->getHeight() ? _wordImg->getWidth() / 160 : _wordImg->getHeight() / 160;
-		
-		
-		_textureImg->initWithImage(_wordImg);
-		auto sprit = Sprite::createWithTexture(_textureImg);	
-		sprit->setContentSize(sprit->getContentSize()/ scale);
-		//sprit->setScale(1 / scale);
-		//sprit->setTag(g_spriteWordImgTag);
-		sprit->setPosition(Vec2(winsize.width/2,sprit->getContentSize().height/ 2));
-		//addChild(sprit, 5);	
+			_setStrWord.clear();
+			_setStrWord.insert(word);	
 
-		auto imgmenuTmp = getChildByTag(g_spriteWordImgTag);
-		if (imgmenuTmp)
-		{
-			removeChildByTag(g_spriteWordImgTag);
-			imgmenuTmp->release();
-		}
-		
-		auto imgItem = MenuItemImage::create();
-		_textureTitle->initWithString("hahaha", "", 40);
-		auto spriteMean = Sprite::createWithTexture(_textureTitle);
-		spriteMean->setPosition(Vec2(winsize.width / 2, sprit->getContentSize().height / 2));
-		imgItem->initWithNormalSprite(sprit, spriteMean,NULL,CC_CALLBACK_0(ContentLayer::imgCallBack,this));
-		imgItem->setTag(g_spriteWordImgTag);
-		
-		addChild(imgItem, 5);
+			removeChildByTag(g_labelTag);
 
+			auto lb = Label::createWithSystemFont(word, "", 20);
+
+			lb->setPosition(Size(winsize.width / 2, winsize.height - 60));
+			lb->setTag(g_labelWordImgTag);
+			addChild(lb);
+			lb->setTag(g_labelTag);
+
+			_wordImg->initWithImageFile(path);
+			float scale = _wordImg->getWidth() > _wordImg->getHeight() ? _wordImg->getWidth() / 160 : _wordImg->getHeight() / 160;
+
+			_textureImg->initWithImage(_wordImg);
+			auto sprit = Sprite::createWithTexture(_textureImg);
+			sprit->setContentSize(sprit->getContentSize() / scale);
+			sprit->setPosition(Vec2(winsize.width / 2, sprit->getContentSize().height / 2));
+
+			//addChild(sprit, 5);
+			sprit->setTag(g_labelTag);
+
+			auto imgItem = MenuItemImage::create();
+			_textureTitle->initWithString("hahaha", "", 40);
+			auto spriteMean = Sprite::createWithTexture(_textureTitle);
+			spriteMean->setPosition(Vec2(winsize.width / 2, sprit->getContentSize().height / 2));
+			imgItem->initWithNormalSprite(sprit, spriteMean, NULL, CC_CALLBACK_0(ContentLayer::imgCallBack, this));
+			imgItem->setTag(g_spriteWordImgTag);
+
+			addChild(imgItem, 5);
+		}
 	}
 }
